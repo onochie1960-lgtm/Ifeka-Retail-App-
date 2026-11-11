@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ifeka Retail App</title>
+    <!-- Tailwind CSS for styling (No need to write custom CSS) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; }
+        .sidebar { background-color: #064e3b; color: white; min-height: 100vh; width: 250px; position: fixed; }
+        .main-content { margin-left: 250px; padding: 20px; }
+        .nav-item { padding: 15px 20px; cursor: pointer; display: block; transition: 0.2s; border-bottom: 1px solid #065f46; }
+        .nav-item:hover, .nav-item.active { background-color: #047857; font-weight: bold; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .btn { background-color: #10b981; color: white; padding: 10px 15px; border-radius: 5px; cursor: pointer; border: none; }
+        .btn:hover { background-color: #059669; }
+        input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; width: 100%; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="p-5 text-xl font-bold border-b border-green-700">🏪 Ifeka Retail</div>
+        <div class="nav-item active" onclick="showPage('dashboard')">📊 Dashboard</div>
+        <div class="nav-item" onclick="showPage('products')">📦 Products</div>
+        <div class="nav-item" onclick="showPage('sales')">💰 Record Sale</div>
+        <div class="nav-item" onclick="showPage('expenses')">💸 Expenses</div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        
+        <!-- Dashboard Page -->
+        <div id="dashboard-page">
+            <h1 class="text-2xl font-bold mb-4">Dashboard</h1>
+            <div class="card">
+                <h3 class="text-lg font-semibold">Welcome back!</h3>
+                <p class="text-gray-600">Select an option from the menu to manage your business.</p>
+            </div>
+        </div>
+
+        <!-- Products Page -->
+        <div id="products-page" class="hidden">
+            <h1 class="text-2xl font-bold mb-4">Products Inventory</h1>
+            <div class="card">
+                <h3 class="text-lg font-semibold mb-2">Add New Product</h3>
+                <input type="text" id="prod-name" placeholder="Product Name (e.g., Rice 5kg)">
+                <input type="number" id="prod-price" placeholder="Selling Price (₦)">
+                <input type="number" id="prod-qty" placeholder="Quantity in Stock">
+                <button class="btn" onclick="addProduct()">Save Product</button>
+                <p id="msg" class="text-green-600 mt-2 font-bold"></p>
+            </div>
+            <div class="card">
+                <h3 class="text-lg font-semibold mb-2">Current Inventory</h3>
+                <div id="product-list" class="space-y-2">Loading...</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- App Logic -->
+    <script>
+        // REPLACE THESE WITH YOUR SUPABASE URL AND ANON KEY
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL_HERE';
+        const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY_HERE';
+
+        // Initialize Supabase
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Navigation Logic
+        function showPage(pageId) {
+            document.querySelectorAll('.main-content > div').forEach(div => div.classList.add('hidden'));
+            document.getElementById(pageId + '-page').classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if(pageId === 'products') loadProducts();
+        }
+
+        // Load Products from Supabase
+        async function loadProducts() {
+            const { data, error } = await supabase
+                .schema('retail')
+                .from('products')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                document.getElementById('product-list').innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`;
+                return;
+            }
+
+            const listDiv = document.getElementById('product-list');
+            listDiv.innerHTML = '';
+            
+            data.forEach(product => {
+                const badgeColor = product.quantity <= 5 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800';
+                listDiv.innerHTML += `
+                    <div class="flex justify-between items-center border-b pb-2">
+                        <div>
+                            <p class="font-bold">${product.name}</p>
+                            <p class="text-sm text-gray-500">₦${product.selling_price}</p>
+                        </div>
+                        <div class="px-3 py-1 rounded ${badgeColor} font-bold">
+                            ${product.quantity} in stock
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Add Product to Supabase
+        async function addProduct() {
+            const name = document.getElementById('prod-name').value;
+            const price = document.getElementById('prod-price').value;
+            const qty = document.getElementById('prod-qty').value;
+
+            if (!name || !price || !qty) {
+                alert("Please fill all fields");
+                return;
+            }
+
+            const { data, error } = await supabase
+                .schema('retail')
+                .from('products')
+                .insert([{ 
+                    name: name, 
+                    selling_price: price, 
+                    quantity: qty 
+                }]);
+
+            if (error) {
+                alert("Error adding product: " + error.message);
+            } else {
+                document.getElementById('msg').innerText = "Product added successfully!";
+                document.getElementById('prod-name').value = '';
+                document.getElementById('prod-price').value = '';
+                document.getElementById('prod-qty').value = '';
+                loadProducts();
+                setTimeout(() => document.getElementById('msg').innerText = '', 3000);
+            }
+        }
+    </script>
+</body>
+</html>
