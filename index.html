@@ -97,13 +97,32 @@
         </div>
 
         <!-- Expenses Page -->
-        <div id="expenses-page" class="hidden">
-            <h1 class="text-2xl font-bold mb-4">Expenses</h1>
-            <div class="card">
-                <h3 class="text-lg font-semibold">Coming Soon</h3>
-                <p>We will build this next!</p>
-            </div>
-        </div>
+        <!-- Expenses Page -->
+<div id="expenses-page" class="hidden">
+    <h1 class="text-2xl font-bold mb-4">Record an Expense</h1>
+    <div class="card">
+        <h3 class="text-lg font-semibold mb-2">New Expense</h3>
+        
+        <label class="block mb-1">Amount (₦):</label>
+        <input type="number" id="exp-amount" placeholder="e.g., 1500">
+        
+        <label class="block mb-1">Description:</label>
+        <input type="text" id="exp-desc" placeholder="e.g., Transport to market">
+        
+        <label class="block mb-1">Category:</label>
+        <select id="exp-category" class="w-full p-3 mb-4 border rounded">
+            <option value="Transport">Transport</option>
+            <option value="Utilities">Utilities</option>
+            <option value="Rent">Rent</option>
+            <option value="Salaries">Salaries</option>
+            <option value="Supplies">Supplies</option>
+            <option value="Other">Other</option>
+        </select>
+        
+        <button class="btn mt-2" onclick="addExpense()">Save Expense</button>
+        <p id="exp-msg" class="text-green-600 mt-2 font-bold"></p>
+    </div>
+</div>
 
     </div> <!-- End of Main Content -->
 
@@ -280,6 +299,44 @@ async function recordSale() {
     
     setTimeout(() => document.getElementById('sale-msg').innerText = '', 4000);
 } 
+    if(pageId === 'expenses') loadExpenses(); 
+    // Load expenses (we will display them on the page later)
+async function loadExpenses() {
+    // For now, we just clear the form when you open the page
+    document.getElementById('exp-amount').value = '';
+    document.getElementById('exp-desc').value = '';
+}
+
+// Save expense to Supabase
+async function addExpense() {
+    const amount = document.getElementById('exp-amount').value;
+    const description = document.getElementById('exp-desc').value;
+    const category = document.getElementById('exp-category').value;
+
+    if (!amount || !description) {
+        return alert("Please enter an amount and a description.");
+    }
+
+    // Save to the retail.expenses table
+    const { data, error } = await supabaseClient
+        .schema('retail')
+        .from('expenses')
+        .insert([{ 
+            amount: parseFloat(amount), 
+            description: description, 
+            category: category 
+        }]);
+
+    if (error) {
+        alert("Error saving expense: " + error.message);
+    } else {
+        document.getElementById('exp-msg').innerText = "✅ Expense saved successfully!";
+        document.getElementById('exp-amount').value = '';
+        document.getElementById('exp-desc').value = '';
+        
+        setTimeout(() => document.getElementById('exp-msg').innerText = '', 3000);
+    }
+}
 </script>
 </body>
 </html>
