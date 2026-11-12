@@ -92,6 +92,10 @@
                 .order('created_at', { ascending: false });
 
             if (error) {
+    alert("Error: " + error.message);
+    document.getElementById('product-list').innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`;
+    return;
+}
                 document.getElementById('product-list').innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`;
                 return;
             }
