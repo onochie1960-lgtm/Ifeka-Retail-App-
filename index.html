@@ -8,28 +8,48 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Supabase Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Mobile Bottom Navigation -->
+<div class="bottom-nav">
+    <div class="nav-item active" onclick="showPage('dashboard', this)">
+        <span class="nav-icon">📊</span> Dashboard
+    </div>
+    <div class="nav-item" onclick="showPage('products', this)">
+        <span class="nav-icon">📦</span> Products
+    </div>
+    <div class="nav-item" onclick="showPage('sales', this)">
+        <span class="nav-icon">💰</span> Sales
+    </div>
+    <div class="nav-item" onclick="showPage('expenses', this)">
+        <span class="nav-icon">💸</span> Expenses
+    </div>
+</div>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; }
-        .sidebar { background-color: #064e3b; color: white; min-height: 100vh; width: 120px; position: fixed; }
-        .main-content { margin-left: 80px; padding: 20px; }
-        .nav-item { padding: 15px 20px; cursor: pointer; display: block; transition: 0.2s; border-bottom: 1px solid #065f46; }
-        .nav-item:hover, .nav-item.active { background-color: #047857; font-weight: bold; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .btn { background-color: #10b981; color: white; padding: 10px 15px; border-radius: 5px; cursor: pointer; border: none; }
-        .btn:hover { background-color: #059669; }
-        input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; width: 100%; margin-bottom: 10px; }
-    </style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; margin: 0; padding-bottom: 70px; }
+    
+    /* Mobile Bottom Navigation */
+    .bottom-nav { 
+        position: fixed; bottom: 0; left: 0; width: 100%; 
+        background-color: #064e3b; display: flex; justify-content: space-around; 
+        padding: 10px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 50;
+    }
+    .nav-item { 
+        color: white; text-align: center; font-size: 12px; cursor: pointer; 
+        padding: 5px; width: 25%; display: flex; flex-direction: column; align-items: center; 
+    }
+    .nav-item.active { color: #34d399; font-weight: bold; }
+    .nav-icon { font-size: 20px; margin-bottom: 4px; }
+    
+    /* Main Content */
+    .main-content { padding: 20px; }
+    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .btn { background-color: #10b981; color: white; padding: 12px; border-radius: 5px; cursor: pointer; border: none; width: 100%; font-size: 16px; font-weight: bold; }
+    .btn:active { background-color: #059669; }
+    input { padding: 12px; border: 1px solid #ccc; border-radius: 5px; width: 100%; margin-bottom: 10px; box-sizing: border-box; font-size: 16px; }
+</style>
 </head>
 <body>
 
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="p-5 text-xl font-bold border-b border-green-700">🏪 Ifeka Retail</div>
-        <div class="nav-item active" onclick="showPage('dashboard')">📊 Dashboard</div>
-        <div class="nav-item" onclick="showPage('products')">📦 Products</div>
-        <div class="nav-item" onclick="showPage('sales')">💰 Record Sale</div>
-        <div class="nav-item" onclick="showPage('expenses')">💸 Expenses</div>
-    </div>
+
 
     <!-- Main Content -->
     <div class="main-content">
@@ -72,14 +92,18 @@
 
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    function showPage(pageId) {
-        document.querySelectorAll('.main-content > div').forEach(div => div.classList.add('hidden'));
-        document.getElementById(pageId + '-page').classList.remove('hidden');
-        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-        event.target.classList.add('active');
-        if(pageId === 'products') loadProducts();
+    function showPage(pageId, element) {
+    document.querySelectorAll('.main-content > div').forEach(div => div.classList.add('hidden'));
+    document.getElementById(pageId + '-page').classList.remove('hidden');
+    
+    // Update active button
+    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+    if(element) {
+        element.classList.add('active');
     }
 
+    if(pageId === 'products') loadProducts();
+}
     async function loadProducts() {
         // Show loading text
         document.getElementById('product-list').innerHTML = '<p>Loading...</p>';
