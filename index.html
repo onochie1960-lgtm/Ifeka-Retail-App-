@@ -54,14 +54,26 @@
     <div class="main-content">
         
         <!-- Dashboard Page -->
-        <div id="dashboard-page">
-            <h1 class="text-2xl font-bold mb-4">Dashboard</h1>
-            <div class="card">
-                <h3 class="text-lg font-semibold">Welcome back!</h3>
-                <p class="text-gray-600">Select an option from the menu to manage your business.</p>
-                <button class="btn mt-4" onclick="showPage('products', document.querySelectorAll('.nav-item')[1])">Go to Products</button>
-            </div>
+        <!-- Dashboard Page -->
+<div id="dashboard-page">
+    <h1 class="text-2xl font-bold mb-4">Dashboard</h1>
+    
+    <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="card" style="margin-bottom: 0;">
+            <h3 class="text-sm text-gray-500 font-bold">Today's Sales</h3>
+            <p id="dash-sales" class="text-2xl font-bold text-green-600">₦0</p>
         </div>
+        <div class="card" style="margin-bottom: 0;">
+            <h3 class="text-sm text-gray-500 font-bold">Today's Expenses</h3>
+            <p id="dash-expenses" class="text-2xl font-bold text-red-600">₦0</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 class="text-lg font-semibold mb-2">Needs Restocking (Below 5)</h3>
+        <div id="dash-low-stock" class="space-y-2">Loading...</div>
+    </div>
+</div>
 
         <!-- Products Page -->
         <div id="products-page" class="hidden">
@@ -335,6 +347,54 @@ async function addExpense() {
         document.getElementById('exp-desc').value = '';
         
         setTimeout(() => document.getElementById('exp-msg').innerText = '', 3000);
+    }
+}
+    if(pageId === 'dashboard') loadDashboard();
+    // Load Dashboard Data
+async function loadDashboard() {
+    // 1. Get today's sales
+    const today = new Date().toISOString().split('T')[0];
+    
+    const { data: sales } = await supabaseClient
+        .schema('retail')
+        .from('sales')
+        .select('total_price')
+        .gte('created_at', today);
+        
+    const totalSales = sales ? sales.reduce((sum, item) => sum + Number(item.total_price), 0) : 0;
+    document.getElementById('dash-sales').innerText = `₦${totalSales.toLocaleString()}`;
+
+    // 2. Get today's expenses
+    const { data: expenses } = await supabaseClient
+        .schema('retail')
+        .from('expenses')
+        .select('amount')
+        .gte('created_at', today);
+        
+    const totalExpenses = expenses ? expenses.reduce((sum, item) => sum + Number(item.amount), 0) : 0;
+    document.getElementById('dash-expenses').innerText = `₦${totalExpenses.toLocaleString()}`;
+
+    // 3. Get low stock items (quantity <= 5)
+    const { data: lowStock } = await supabaseClient
+        .schema('retail')
+        .from('products')
+        .select('name, quantity')
+        .lte('quantity', 5);
+
+    const stockDiv = document.getElementById('dash-low-stock');
+    stockDiv.innerHTML = '';
+    
+    if (!lowStock || lowStock.length === 0) {
+        stockDiv.innerHTML = '<p class="text-gray-500">All products are well stocked!</p>';
+    } else {
+        lowStock.forEach(p => {
+            stockDiv.innerHTML += `
+                <div class="flex justify-between border-b pb-2">
+                    <span class="font-bold">${p.name}</span>
+                    <span class="text-red-600 font-bold">${p.quantity} left</span>
+                </div>
+            `;
+        });
     }
 }
 </script>
