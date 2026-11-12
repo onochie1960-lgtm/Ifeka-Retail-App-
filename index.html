@@ -49,8 +49,6 @@
 </head>
 <body>
 
-
-
     <!-- Main Content -->
     <div class="main-content">
         
@@ -60,7 +58,7 @@
             <div class="card">
                 <h3 class="text-lg font-semibold">Welcome back!</h3>
                 <p class="text-gray-600">Select an option from the menu to manage your business.</p>
-                  <button class="btn mt-4" onclick="loadProducts(); showPage('products');">TEST PRODUCTS</button>
+                <button class="btn mt-4" onclick="showPage('products', document.querySelectorAll('.nav-item')[1])">Go to Products</button>
             </div>
         </div>
 
@@ -75,30 +73,56 @@
                 <button class="btn" onclick="addProduct()">Save Product</button>
                 <p id="msg" class="text-green-600 mt-2 font-bold"></p>
             </div>
-            <!-- Sales Page -->
-<div id="sales-page" class="hidden">
-    <h1 class="text-2xl font-bold mb-4">Record a Sale</h1>
-    
-    <div class="card">
-        <h3 class="text-lg font-semibold mb-2">New Sale</h3>
-        <label class="block mb-1">Select Product:</label>
-        <select id="sale-product" class="w-full p-3 mb-4 border rounded"></select>
-        
-        <label class="block mb-1">Quantity Sold:</label>
-        <input type="number" id="sale-qty" placeholder="How many?">
-        
-        <button class="btn mt-4" onclick="recordSale()">Save Sale</button>
-        <p id="sale-msg" class="text-green-600 mt-2 font-bold"></p>
-    </div>
-</div>
             <div class="card">
                 <h3 class="text-lg font-semibold mb-2">Current Inventory</h3>
                 <div id="product-list" class="space-y-2">Loading...</div>
             </div>
         </div>
 
+        <!-- Sales Page -->
+        <div id="sales-page" class="hidden">
+            <h1 class="text-2xl font-bold mb-4">Record a Sale</h1>
+            <div class="card">
+                <h3 class="text-lg font-semibold mb-2">New Sale</h3>
+                <label class="block mb-1">Select Product:</label>
+                <select id="sale-product" class="w-full p-3 mb-4 border rounded"></select>
+                
+                <label class="block mb-1">Quantity Sold:</label>
+                <input type="number" id="sale-qty" placeholder="How many?">
+                
+                <button class="btn mt-4" onclick="recordSale()">Save Sale</button>
+                <p id="sale-msg" class="text-green-600 mt-2 font-bold"></p>
+            </div>
+        </div>
+
+        <!-- Expenses Page -->
+        <div id="expenses-page" class="hidden">
+            <h1 class="text-2xl font-bold mb-4">Expenses</h1>
+            <div class="card">
+                <h3 class="text-lg font-semibold">Coming Soon</h3>
+                <p>We will build this next!</p>
+            </div>
+        </div>
+
+    </div> <!-- End of Main Content -->
+
+    <!-- Mobile Bottom Navigation -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="showPage('dashboard', this)">
+            <span class="nav-icon">📊</span> Dashboard
+        </div>
+        <div class="nav-item" onclick="showPage('products', this)">
+            <span class="nav-icon">📦</span> Products
+        </div>
+        <div class="nav-item" onclick="showPage('sales', this)">
+            <span class="nav-icon">💰</span> Sales
+        </div>
+        <div class="nav-item" onclick="showPage('expenses', this)">
+            <span class="nav-icon">💸</span> Expenses
+        </div>
     </div>
 
+    <!-- Keep your <script> tag exactly as it is below this! -->
     <!-- App Logic -->
 <script>
     // Setup Supabase
