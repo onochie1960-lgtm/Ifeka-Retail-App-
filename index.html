@@ -356,49 +356,61 @@ async function addExpense() {
     if(pageId === 'dashboard') loadDashboard();
     // Load Dashboard Data
 async function loadDashboard() {
-    // 1. Get today's sales
-    const today = new Date().toISOString().split('T')[0];
-    
-    const { data: sales } = await supabaseClient
-        .schema('retail')
-        .from('sales')
-        .select('total_price')
-        .gte('created_at', today);
+    try {
+        const today = new Date().toISOString().split('T')[0];
         
-    const totalSales = sales ? sales.reduce((sum, item) => sum + Number(item.total_price), 0) : 0;
-    document.getElementById('dash-sales').innerText = `₦${totalSales.toLocaleString()}`;
+        // 1. Get today's sales
+        const { data: sales, error: salesError } = await supabaseClient
+            .schema('retail')
+            .from('sales')
+            .select('total_price')
+            .gte('created_at', today);
+            
+        if (salesError) throw new Error("Sales error: " + salesError.message);
+            
+        const totalSales = sales ? sales.reduce((sum, item) => sum + Number(item.total_price), 0) : 0;
+        document.getElementById('dash-sales').innerText = `₦${totalSales.toLocaleString()}`;
 
-    // 2. Get today's expenses
-    const { data: expenses } = await supabaseClient
-        .schema('retail')
-        .from('expenses')
-        .select('amount')
-        .gte('created_at', today);
+        // 2. Get today's expenses
+        const { data: expenses, error: expError } = await supabaseClient
+            .schema('retail')
+            .from('expenses')
+            .select('amount')
+            .gte('created_at', today);
+            
+        if (expError) throw new Error("Expenses error: " + expError.message);
+            
+        const totalExpenses = expenses ? expenses.reduce((sum, item) => sum + Number(item.amount), 0) : 0;
+        document.getElementById('dash-expenses').innerText = `₦${totalExpenses.toLocaleString()}`;
+
+        // 3. Get low stock items
+        const { data: lowStock, error: stockError } = await supabaseClient
+            .schema('retail')
+            .from('products')
+            .select('name, quantity')
+            .lte('quantity', 5);
+            
+        if (stockError) throw new Error("Stock error: " + stockError.message);
+
+        const stockDiv = document.getElementById('dash-low-stock');
+        stockDiv.innerHTML = '';
         
-    const totalExpenses = expenses ? expenses.reduce((sum, item) => sum + Number(item.amount), 0) : 0;
-    document.getElementById('dash-expenses').innerText = `₦${totalExpenses.toLocaleString()}`;
-
-    // 3. Get low stock items (quantity <= 5)
-    const { data: lowStock } = await supabaseClient
-        .schema('retail')
-        .from('products')
-        .select('name, quantity')
-        .lte('quantity', 5);
-
-    const stockDiv = document.getElementById('dash-low-stock');
-    stockDiv.innerHTML = '';
-    
-    if (!lowStock || lowStock.length === 0) {
-        stockDiv.innerHTML = '<p class="text-gray-500">All products are well stocked!</p>';
-    } else {
-        lowStock.forEach(p => {
-            stockDiv.innerHTML += `
-                <div class="flex justify-between border-b pb-2">
-                    <span class="font-bold">${p.name}</span>
-                    <span class="text-red-600 font-bold">${p.quantity} left</span>
-                </div>
-            `;
-        });
+        if (!lowStock || lowStock.length === 0) {
+            stockDiv.innerHTML = '<p class="text-gray-500">All products are well stocked!</p>';
+        } else {
+            lowStock.forEach(p => {
+                stockDiv.innerHTML += `
+                    <div class="flex justify-between border-b pb-2">
+                        <span class="font-bold">${p.name}</span>
+                        <span class="text-red-600 font-bold">${p.quantity} left</span>
+                    </div>
+                `;
+            });
+        }
+    } catch (err) {
+        // THIS WILL SHOW US THE EXACT ERROR
+        alert("DASHBOARD ERROR: " + err.message);
+        document.getElementById('dash-low-stock').innerHTML = `<p class="text-red-500">Error: ${err.message}</p>`;
     }
 }
     // Load dashboard automatically when the page opens
