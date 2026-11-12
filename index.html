@@ -251,8 +251,12 @@
     document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
     if(element) element.classList.add('active');
 
+    // These lines tell the app what to load when you click a tab
+    if(pageId === 'dashboard') loadDashboard();
     if(pageId === 'products') loadProducts();
-    if(pageId === 'sales') loadProductDropdown(); // NEW: Load dropdown for sales
+    if(pageId === 'sales') loadProductDropdown(); 
+    if(pageId === 'expenses') loadExpenses(); 
+    }
 }
    // Load products into the dropdown
 async function loadProductDropdown() {
@@ -397,6 +401,10 @@ async function loadDashboard() {
         });
     }
 }
+    // Load dashboard automatically when the page opens
+window.onload = function() {
+    loadDashboard();
+};
 </script>
 </body>
 </html>
