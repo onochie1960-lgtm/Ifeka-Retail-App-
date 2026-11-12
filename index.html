@@ -9,20 +9,7 @@
     <!-- Supabase Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Mobile Bottom Navigation -->
-<div class="bottom-nav">
-    <div class="nav-item active" onclick="showPage('dashboard', this)">
-        <span class="nav-icon">📊</span> Dashboard
-    </div>
-    <div class="nav-item" onclick="showPage('products', this)">
-        <span class="nav-icon">📦</span> Products
-    </div>
-    <div class="nav-item" onclick="showPage('sales', this)">
-        <span class="nav-icon">💰</span> Sales
-    </div>
-    <div class="nav-item" onclick="showPage('expenses', this)">
-        <span class="nav-icon">💸</span> Expenses
-    </div>
-</div>
+
     <style>
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; margin: 0; padding-bottom: 70px; }
     
@@ -48,12 +35,11 @@
         .main-content { max-width: 600px; margin: 0 auto; width: 100%; box-sizing: border-box; }
 </style>
 </head>
-<body>
-
+<body onload="loadDashboard()">
     <!-- Main Content -->
     <div class="main-content">
         
-        <!-- Dashboard Page -->
+        
         <!-- Dashboard Page -->
 <div id="dashboard-page">
     <h1 class="text-2xl font-bold mb-4">Dashboard</h1>
@@ -153,9 +139,8 @@
             <span class="nav-icon">💸</span> Expenses
         </div>
     </div>
+</div> <!-- End of Main Content -->
 
-    <!-- Keep your <script> tag exactly as it is below this! -->
-    <!-- App Logic -->
 <script>
     // Setup Supabase
     const SUPABASE_URL = 'https://ywpavqsencpilxisltsm.supabase.co';
@@ -413,10 +398,7 @@ async function loadDashboard() {
         document.getElementById('dash-low-stock').innerHTML = `<p class="text-red-500">Error: ${err.message}</p>`;
     }
 }
-    // Load dashboard automatically when the page opens
-window.onload = function() {
-    loadDashboard();
-};
+    
 </script>
 </body>
 </html>
