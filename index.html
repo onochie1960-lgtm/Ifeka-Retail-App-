@@ -75,6 +75,22 @@
                 <button class="btn" onclick="addProduct()">Save Product</button>
                 <p id="msg" class="text-green-600 mt-2 font-bold"></p>
             </div>
+            <!-- Sales Page -->
+<div id="sales-page" class="hidden">
+    <h1 class="text-2xl font-bold mb-4">Record a Sale</h1>
+    
+    <div class="card">
+        <h3 class="text-lg font-semibold mb-2">New Sale</h3>
+        <label class="block mb-1">Select Product:</label>
+        <select id="sale-product" class="w-full p-3 mb-4 border rounded"></select>
+        
+        <label class="block mb-1">Quantity Sold:</label>
+        <input type="number" id="sale-qty" placeholder="How many?">
+        
+        <button class="btn mt-4" onclick="recordSale()">Save Sale</button>
+        <p id="sale-msg" class="text-green-600 mt-2 font-bold"></p>
+    </div>
+</div>
             <div class="card">
                 <h3 class="text-lg font-semibold mb-2">Current Inventory</h3>
                 <div id="product-list" class="space-y-2">Loading...</div>
@@ -172,6 +188,73 @@
             setTimeout(() => document.getElementById('msg').innerText = '', 3000);
         }
     }
+    function showPage(pageId, element) {
+    document.querySelectorAll('.main-content > div').forEach(div => div.classList.add('hidden'));
+    document.getElementById(pageId + '-page').classList.remove('hidden');
+    
+    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+    if(element) element.classList.add('active');
+
+    if(pageId === 'products') loadProducts();
+    if(pageId === 'sales') loadProductDropdown(); // NEW: Load dropdown for sales
+}
+   // Load products into the dropdown
+async function loadProductDropdown() {
+    const { data, error } = await supabaseClient.schema('retail').from('products').select('*');
+    if (error) return alert("Error: " + error.message);
+
+    const dropdown = document.getElementById('sale-product');
+    dropdown.innerHTML = '<option value="">-- Select a product --</option>';
+    
+    data.forEach(p => {
+        dropdown.innerHTML += `<option value="${p.id}" data-price="${p.selling_price}" data-stock="${p.quantity}">${p.name} (₦${p.selling_price} - ${p.quantity} in stock)</option>`;
+    });
+}
+
+// Record the sale and update stock
+async function recordSale() {
+    const dropdown = document.getElementById('sale-product');
+    const selectedOption = dropdown.options[dropdown.selectedIndex];
+    
+    if (!selectedOption.value) return alert("Please select a product");
+    
+    const qty = parseInt(document.getElementById('sale-qty').value);
+    if (!qty || qty <= 0) return alert("Please enter a valid quantity");
+
+    const productId = selectedOption.value;
+    const productName = selectedOption.text.split(' (')[0]; // Extract name
+    const price = parseFloat(selectedOption.getAttribute('data-price'));
+    const currentStock = parseFloat(selectedOption.getAttribute('data-stock'));
+
+    if (qty > currentStock) return alert("Not enough stock! You only have " + currentStock);
+
+    const totalPrice = price * qty;
+    const newStock = currentStock - qty;
+
+    // 1. Save to sales table
+    const { error: saleError } = await supabaseClient
+        .schema('retail')
+        .from('sales')
+        .insert([{ product_id: productId, product_name: productName, quantity_sold: qty, total_price: totalPrice }]);
+
+    if (saleError) return alert("Error saving sale: " + saleError.message);
+
+    // 2. Update the product stock
+    const { error: stockError } = await supabaseClient
+        .schema('retail')
+        .from('products')
+        .update({ quantity: newStock })
+        .eq('id', productId);
+
+    if (stockError) return alert("Sale saved, but failed to update stock: " + stockError.message);
+
+    // 3. Success!
+    document.getElementById('sale-msg').innerText = `✅ Sold ${qty} ${productName} for ₦${totalPrice}`;
+    document.getElementById('sale-qty').value = '';
+    loadProductDropdown(); // Refresh the stock list in the dropdown
+    
+    setTimeout(() => document.getElementById('sale-msg').innerText = '', 4000);
+} 
 </script>
 </body>
 </html>
