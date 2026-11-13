@@ -424,13 +424,14 @@ async function addCustomer() {
     const { error } = await supabaseClient.schema('retail').from('customers').insert([{ name: name, phone: phone, balance: 0 }]);
     
     if (error) {
-        alert("Error adding customer: " + error.message);
-    } else {
-        document.getElementById('cust-msg').innerText = "Customer added!";
-        document.getElementById('cust-name').value = '';
-        document.getElementById('cust-phone').value = '';
-        loadCustomers();
-        setTimeout(() => document.getElementById('cust-msg').innerText = '', 3000);
+    alert("Error adding customer: " + error.message);
+} else {
+    document.getElementById('cust-msg').innerText = "Customer added!";
+    document.getElementById('cust-name').value = '';
+    document.getElementById('cust-phone').value = '';
+    await loadCustomers(); // <--- THIS is the important fix
+    setTimeout(() => document.getElementById('cust-msg').innerText = '', 3000);
+}
     }
 }
 
@@ -453,7 +454,7 @@ async function recordPayment(id, currentBalance) {
     const { error } = await supabaseClient.schema('retail').from('customers').update({ balance: newBalance }).eq('id', id);
     
     if (error) alert("Error: " + error.message);
-    else awaitloadCustomers();
+    else loadCustomers();
 }
 </script>
 </body>
