@@ -345,6 +345,207 @@
 
     // 6. Expenses Logic
     async function loadExpenses() {
+<script>
+    // 1. Setup Supabase
+    const SUPABASE_URL = 'https://ywpavqscnepilxislstm.supabase.co';
+    const SUPABASE_KEY = 'PASTE_YOUR_ANON_KEY_HERE'; // <--- PASTE YOUR KEY HERE
+
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // 2. Navigation Logic
+    function showPage(pageId, element) {
+        document.querySelectorAll('.main-content > div').forEach(div => div.classList.add('hidden'));
+        document.getElementById(pageId + '-page').classList.remove('hidden');
+        
+        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+        if(element) element.classList.add('active');
+
+        if(pageId === 'dashboard') loadDashboard();
+        if(pageId === 'products') loadProducts();
+        if(pageId === 'sales') loadProductDropdown(); 
+        if(pageId === 'expenses') loadExpenses(); 
+        if(pageId === 'credit') loadCustomers(); 
+    }
+
+    // 3. Dashboard Logic
+    async function loadDashboard() {
+        try {
+            const today = new Date().toISOString().split('T')[0];
+            
+            const { data: sales } = await supabaseClient.schema('retail').from('sales').select('total_price').gte('created_at', today);
+            const totalSales = sales ? sales.reduce((sum, item) => sum + Number(item.total_price), 0) : 0;
+            document.getElementById('dash-sales').innerText = `₦${totalSales.toLocaleString()}`;
+
+            const { data: expenses } = await supabaseClient.schema('retail').from('expenses').select('amount').gte('created_at', today);
+            const totalExpenses = expenses ? expenses.reduce((sum, item) => sum + Number(item.amount), 0) : 0;
+            document.getElementById('dash-expenses').innerText = `₦${totalExpenses.toLocaleString()}`;
+
+            const { data: lowStock, error: stockError } = await supabaseClient.schema('retail').from('products').select('name, quantity').lte('quantity', 5);
+            
+            const stockDiv = document.getElementById('dash-low-stock');
+            stockDiv.innerHTML = '';
+            
+            if (!lowStock || lowStock.length === 0) {
+                stockDiv.innerHTML = '<p class="text-gray-500">All products are well stocked!</p>';
+            } else {
+                lowStock.forEach(p => {
+                    stockDiv.innerHTML += `
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-bold">${p.name}</span>
+                            <span class="text-red-600 font-bold">${p.quantity} left</span>
+                        </div>
+                    `;
+                });
+            }
+        } catch (err) {
+            alert("DASHBOARD ERROR: " + err.message);
+        }
+    }
+
+    // 4. Products Logic
+    async function loadProducts() {
+        const { data, error } = await supabaseClient.schema('retail').from('products').select('*').order('created_at', { ascending: false });
+<script>
+    // 1. Setup Supabase
+    const SUPABASE_URL = 'https://ywpavqscnepilxislstm.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3cGF2cXNlbmNwaWx4aXNsdHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxMzU1OTAsImV4cCI6MjEwMjcxMTU5MH0.7NblgPa1zhyVzmZzwLuf_qAMJDhFEdRcvDEaIDJk37E':
+
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // 2. Navigation Logic
+    function showPage(pageId, element) {
+        document.querySelectorAll('.main-content > div').forEach(div => div.classList.add('hidden'));
+        document.getElementById(pageId + '-page').classList.remove('hidden');
+        
+        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+        if(element) element.classList.add('active');
+
+        if(pageId === 'dashboard') loadDashboard();
+        if(pageId === 'products') loadProducts();
+        if(pageId === 'sales') loadProductDropdown(); 
+        if(pageId === 'expenses') loadExpenses(); 
+        if(pageId === 'credit') loadCustomers(); 
+    }
+
+    // 3. Dashboard Logic
+    async function loadDashboard() {
+        try {
+            const today = new Date().toISOString().split('T')[0];
+            
+            const { data: sales } = await supabaseClient.schema('retail').from('sales').select('total_price').gte('created_at', today);
+            const totalSales = sales ? sales.reduce((sum, item) => sum + Number(item.total_price), 0) : 0;
+            document.getElementById('dash-sales').innerText = `₦${totalSales.toLocaleString()}`;
+
+            const { data: expenses } = await supabaseClient.schema('retail').from('expenses').select('amount').gte('created_at', today);
+            const totalExpenses = expenses ? expenses.reduce((sum, item) => sum + Number(item.amount), 0) : 0;
+            document.getElementById('dash-expenses').innerText = `₦${totalExpenses.toLocaleString()}`;
+
+            const { data: lowStock, error: stockError } = await supabaseClient.schema('retail').from('products').select('name, quantity').lte('quantity', 5);
+            
+            const stockDiv = document.getElementById('dash-low-stock');
+            stockDiv.innerHTML = '';
+            
+            if (!lowStock || lowStock.length === 0) {
+                stockDiv.innerHTML = '<p class="text-gray-500">All products are well stocked!</p>';
+            } else {
+                lowStock.forEach(p => {
+                    stockDiv.innerHTML += `
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-bold">${p.name}</span>
+                            <span class="text-red-600 font-bold">${p.quantity} left</span>
+                        </div>
+                    `;
+                });
+            }
+        } catch (err) {
+            alert("DASHBOARD ERROR: " + err.message);
+        }
+    }
+
+    // 4. Products Logic
+    async function loadProducts() {
+        const { data, error } = await supabaseClient.schema('retail').from('products').select('*').order('created_at', { ascending: false });
+        if (error) return alert("Error: " + error.message);
+
+        const listDiv = document.getElementById('product-list');
+        listDiv.innerHTML = data.length === 0 ? '<p>No products found.</p>' : '';
+        
+        data.forEach(product => {
+            const badgeColor = product.quantity <= 5 ? 'background:#fee2e2; color:#991b1b;' : 'background:#dcfce7; color:#166534;';
+            listDiv.innerHTML += `
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ccc; padding:10px 0;">
+                    <div>
+                        <p style="font-weight:bold; margin:0;">${product.name}</p>
+                        <p style="font-size:12px; color:#666; margin:0;">₦${product.selling_price}</p>
+                    </div>
+                    <div style="padding:5px 10px; border-radius:5px; font-weight:bold; ${badgeColor}">
+                        ${product.quantity} in stock
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    async function addProduct() {
+        const name = document.getElementById('prod-name').value;
+        const price = document.getElementById('prod-price').value;
+        const qty = document.getElementById('prod-qty').value;
+        if (!name || !price || !qty) return alert("Please fill all fields");
+
+        const { error } = await supabaseClient.schema('retail').from('products').insert([{ name: name, selling_price: price, quantity: qty }]);
+        if (error) alert("Error: " + error.message);
+        else {
+            document.getElementById('msg').innerText = "Product added!";
+            document.getElementById('prod-name').value = '';
+            document.getElementById('prod-price').value = '';
+            document.getElementById('prod-qty').value = '';
+            loadProducts();
+            setTimeout(() => document.getElementById('msg').innerText = '', 3000);
+        }
+    }
+
+    // 5. Sales Logic
+    async function loadProductDropdown() {
+        const { data, error } = await supabaseClient.schema('retail').from('products').select('*');
+        if (error) return alert("Error: " + error.message);
+
+        const dropdown = document.getElementById('sale-product');
+        dropdown.innerHTML = '<option value="">-- Select a product --</option>';
+        
+        data.forEach(p => {
+            dropdown.innerHTML += `<option value="${p.id}" data-price="${p.selling_price}" data-stock="${p.quantity}">${p.name} (₦${p.selling_price} - ${p.quantity} in stock)</option>`;
+        });
+    }
+
+    async function recordSale() {
+        const dropdown = document.getElementById('sale-product');
+        const selectedOption = dropdown.options[dropdown.selectedIndex];
+        if (!selectedOption.value) return alert("Please select a product");
+        
+        const qty = parseInt(document.getElementById('sale-qty').value);
+        if (!qty || qty <= 0) return alert("Please enter a valid quantity");
+
+        const productId = selectedOption.value;
+        const productName = selectedOption.text.split(' (')[0];
+        const price = parseFloat(selectedOption.getAttribute('data-price'));
+        const currentStock = parseFloat(selectedOption.getAttribute('data-stock'));
+
+        if (qty > currentStock) return alert("Not enough stock!");
+
+        const { error: saleError } = await supabaseClient.schema('retail').from('sales').insert([{ product_id: productId, product_name: productName, quantity_sold: qty, total_price: price * qty }]);
+        if (saleError) return alert("Error: " + saleError.message);
+
+        const { error: stockError } = await supabaseClient.schema('retail').from('products').update({ quantity: currentStock - qty }).eq('id', productId);
+        if (stockError) return alert("Error updating stock: " + stockError.message);
+
+        document.getElementById('sale-msg').innerText = `✅ Sold ${qty} ${productName}!`;
+        document.getElementById('sale-qty').value = '';
+        loadProductDropdown(); 
+        setTimeout(() => document.getElementById('sale-msg').innerText = '', 3000);
+    }
+
+    // 6. Expenses Logic
+    async function loadExpenses() {
         document.getElementById('exp-amount').value = '';
         document.getElementById('exp-desc').value = '';
     }
@@ -353,111 +554,85 @@
         const amount = document.getElementById('exp-amount').value;
         const description = document.getElementById('exp-desc').value;
         const category = document.getElementById('exp-category').value;
-
-        if (!amount || !description) return alert("Please enter an amount and a description.");
+        if (!amount || !description) return alert("Please fill all fields");
 
         const { error } = await supabaseClient.schema('retail').from('expenses').insert([{ amount: parseFloat(amount), description: description, category: category }]);
-
-        if (error) {
-            alert("Error saving expense: " + error.message);
-        } else {
-            document.getElementById('exp-msg').innerText = "✅ Expense saved successfully!";
+        if (error) alert("Error: " + error.message);
+        else {
+            document.getElementById('exp-msg').innerText = "✅ Expense saved!";
             document.getElementById('exp-amount').value = '';
             document.getElementById('exp-desc').value = '';
             setTimeout(() => document.getElementById('exp-msg').innerText = '', 3000);
         }
     }
 
-    // 7. Auto-load Dashboard when page opens
-    window.onload = function() {
-        loadDashboard();
-    };
-    // 8. Customers Logic
-async function loadCustomers() {
-    document.getElementById('credit-list').innerHTML = '<p>Loading...</p>';
-    const { data, error } = await supabaseClient.schema('retail').from('customers').select('*').order('balance', { ascending: false });
-    
-    if (error) {
-        document.getElementById('credit-list').innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`;
-        return;
+    // 7. Customers / Credit Logic
+    async function loadCustomers() {
+        const { data, error } = await supabaseClient.schema('retail').from('customers').select('*').order('balance', { ascending: false });
+        if (error) return alert("Error: " + error.message);
+
+        const listDiv = document.getElementById('credit-list');
+        listDiv.innerHTML = data.length === 0 ? '<p>No customers found.</p>' : '';
+        
+        data.forEach(cust => {
+            const balanceColor = cust.balance > 0 ? 'text-red-600' : 'text-green-600';
+            const whatsappLink = `https://wa.me/${cust.phone}?text=Hello ${cust.name}, your balance is ₦${cust.balance}. Please pay soon.`;
+            
+            listDiv.innerHTML += `
+                <div style="border-bottom:1px solid #ccc; padding:10px 0;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <p style="font-weight:bold; margin:0;">${cust.name}</p>
+                            <p style="font-size:12px; color:#666; margin:0;">${cust.phone}</p>
+                        </div>
+                        <div style="text-align:right;">
+                            <p class="font-bold ${balanceColor}" style="margin:0;">₦${cust.balance.toLocaleString()}</p>
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button onclick="recordDebt('${cust.id}', ${cust.balance})" style="background:#dcfce7; color:#166534; padding:5px 10px; border-radius:5px; border:1px solid #166534;">Add Debt</button>
+                        <button onclick="recordPayment('${cust.id}', ${cust.balance})" style="background:#fee2e2; color:#991b1b; padding:5px 10px; border-radius:5px; border:1px solid #991b1b;">Pay</button>
+                        ${cust.balance > 0 ? `<a href="${whatsappLink}" target="_blank" style="background:#25D366; color:white; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:12px; font-weight:bold;">WhatsApp</a>` : ''}
+                    </div>
+                </div>
+            `;
+        });
     }
 
-    const listDiv = document.getElementById('credit-list');
-    listDiv.innerHTML = '';
-    
-    if (data.length === 0) {
-        listDiv.innerHTML = '<p>No customers found.</p>';
-        return;
+    async function addCustomer() {
+        const name = document.getElementById('cust-name').value;
+        const phone = document.getElementById('cust-phone').value;
+        if (!name || !phone) return alert("Please fill all fields");
+
+        const { error } = await supabaseClient.schema('retail').from('customers').insert([{ name: name, phone: phone, balance: 0 }]);
+        if (error) alert("Error: " + error.message);
+        else {
+            document.getElementById('cust-msg').innerText = "Customer added!";
+            document.getElementById('cust-name').value = '';
+            document.getElementById('cust-phone').value = '';
+            await loadCustomers();
+            setTimeout(() => document.getElementById('cust-msg').innerText = '', 3000);
+        }
     }
 
-    data.forEach(cust => {
-        // If they owe money, the balance is red. If they have credit (0), it's green.
-        const balanceColor = cust.balance > 0 ? 'text-red-600' : 'text-green-600';
-        const whatsappLink = `https://wa.me/${cust.phone}?text=Hello ${cust.name}, this is a reminder that your balance is ₦${cust.balance}. Please pay soon. Thank you!`;
-        listDiv.innerHTML += `
-    <div style="border-bottom:1px solid #ccc; padding:10px 0;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div>
-                <p style="font-weight:bold; margin:0;">${cust.name}</p>
-                <p style="font-size:12px; color:#666; margin:0;">${cust.phone}</p>
-            </div>
-            <div style="text-align:right;">
-                <p class="font-bold ${balanceColor}" style="margin:0;">₦${cust.balance.toLocaleString()}</p>
-            </div>
-        </div>
-        <div style="margin-top: 10px; display: flex; gap: 10px;">
-            <button onclick="recordDebt('${cust.id}', ${cust.balance})" style="background:#dcfce7; color:#166534; padding:5px 10px; border-radius:5px; border:1px solid #166534; font-size:12px;">Add Debt</button>
-            <button onclick="recordPayment('${cust.id}', ${cust.balance})" style="background:#fee2e2; color:#991b1b; padding:5px 10px; border-radius:5px; border:1px solid #991b1b; font-size:12px;">Record Payment</button>
-            ${cust.balance > 0 ? `<a href="${whatsappLink}" target="_blank" style="background:#25D366; color:white; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:12px; font-weight:bold;">WhatsApp Reminder</a>` : ''}
-        </div>
-    </div>
-`;
-    });
-}
-
-async function addCustomer() {
-    const name = document.getElementById('cust-name').value;
-    const phone = document.getElementById('cust-phone').value;
-
-    if (!name || !phone) return alert("Please enter both name and phone number.");
-
-    const { error } = await supabaseClient.schema('retail').from('customers').insert([{ name: name, phone: phone, balance: 0 }]);
-    
-    if (error) {
-    alert("Error adding customer: " + error.message);
-} else {
-    document.getElementById('cust-msg').innerText = "Customer added!";
-    document.getElementById('cust-name').value = '';
-    document.getElementById('cust-phone').value = '';
-    await loadCustomers(); // <--- THIS is the important fix
-    setTimeout(() => document.getElementById('cust-msg').innerText = '', 3000);
-}
+    async function recordDebt(id, currentBalance) {
+        const amount = prompt("Enter amount to ADD to their debt (₦):");
+        if (!amount || isNaN(amount)) return;
+        const { error } = await supabaseClient.schema('retail').from('customers').update({ balance: currentBalance + parseFloat(amount) }).eq('id', id);
+        if (error) alert("Error: " + error.message);
+        else loadCustomers();
     }
-}
 
-async function recordDebt(id, currentBalance) {
-    const amount = prompt("Enter amount to ADD to their debt (₦):");
-    if (!amount || isNaN(amount)) return;
-    
-    const newBalance = currentBalance + parseFloat(amount);
-    const { error } = await supabaseClient.schema('retail').from('customers').update({ balance: newBalance }).eq('id', id);
-    
-    if (error) alert("Error: " + error.message);
-    else loadCustomers();
-}
-
-async function recordPayment(id, currentBalance) {
-    const amount = prompt("Enter amount they PAID (₦):");
-    if (!amount || isNaN(amount)) return;
-    
-    const newBalance = currentBalance - parseFloat(amount);
-    const { error } = await supabaseClient.schema('retail').from('customers').update({ balance: newBalance }).eq('id', id);
-    
-    if (error) alert("Error: " + error.message);
-    else loadCustomers();
+    async function recordPayment(id, currentBalance) {
+        const amount = prompt("Enter amount they PAID (₦):");
+        if (!amount || isNaN(amount)) return;
+        const { error } = await supabaseClient.schema('retail').from('customers').update({ balance: currentBalance - parseFloat(amount) }).eq('id', id);
+        if (error) alert("Error: " + error.message);
+        else loadCustomers();
     }
-    
-     
+
+    // 8. Auto-load Dashboard
+    window.onload = function() { loadDashboard(); };
 </script>
 </body>
 </html>
