@@ -394,25 +394,24 @@ async function loadCustomers() {
         // If they owe money, the balance is red. If they have credit (0), it's green.
         const balanceColor = cust.balance > 0 ? 'text-red-600' : 'text-green-600';
         const whatsappLink = `https://wa.me/${cust.phone}?text=Hello ${cust.name}, this is a reminder that your balance is ₦${cust.balance}. Please pay soon. Thank you!`;
-        
         listDiv.innerHTML += `
-            <div style="border-bottom:1px solid #ccc; padding:10px 0;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <p style="font-weight:bold; margin:0;">${cust.name}</p>
-                        <p style="font-size:12px; color:#666; margin:0;">${cust.phone}</p>
-                    </div>
-                    <div style="text-align:right;">
-                        <p class="font-bold ${balanceColor}" style="margin:0;">₦${cust.balance.toLocaleString()}</p>
-                    </div>
-                </div>
-                <div style="margin-top: 10px; display: flex; gap: 10px;">
-                    <button onclick="recordDebt('${cust.id}', ${cust.balance})" style="background:#dcfce7; color:#166534; padding:5px 10px; border-radius:5px; border:1px solid #166534; font-size:12px;">Add Debt</button>
-                    <button onclick="recordPayment('${cust.id}', ${cust.balance})" style="background:#fee2e2; color:#991b1b; padding:5px 10px; border-radius:5px; border:1px solid #991b1b; font-size:12px;">Record Payment</button>
-                    ${cust.balance > 0 ? `<a href="${whatsappLink}" target="_blank" style="background:#25D366; color:white; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:12px; font-weight:bold;">WhatsApp Reminder</a>` : ''}
-                </div>
+    <div style="border-bottom:1px solid #ccc; padding:10px 0;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <p style="font-weight:bold; margin:0;">${cust.name}</p>
+                <p style="font-size:12px; color:#666; margin:0;">${cust.phone}</p>
             </div>
-        `;
+            <div style="text-align:right;">
+                <p class="font-bold ${balanceColor}" style="margin:0;">₦${cust.balance.toLocaleString()}</p>
+            </div>
+        </div>
+        <div style="margin-top: 10px; display: flex; gap: 10px;">
+            <button onclick="recordDebt('${cust.id}', ${cust.balance})" style="background:#dcfce7; color:#166534; padding:5px 10px; border-radius:5px; border:1px solid #166534; font-size:12px;">Add Debt</button>
+            <button onclick="recordPayment('${cust.id}', ${cust.balance})" style="background:#fee2e2; color:#991b1b; padding:5px 10px; border-radius:5px; border:1px solid #991b1b; font-size:12px;">Record Payment</button>
+            ${cust.balance > 0 ? `<a href="${whatsappLink}" target="_blank" style="background:#25D366; color:white; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:12px; font-weight:bold;">WhatsApp Reminder</a>` : ''}
+        </div>
+    </div>
+`;
     });
 }
 
