@@ -15,7 +15,7 @@
     
     /* Mobile Bottom Navigation */
     .bottom-nav { 
-        position: fixed; bottom: 0; left: 0; width: 100%; 
+        position: fixed; bottom: 0; left: 0; width: 20%; 
         background-color: #064e3b; display: flex; justify-content: space-around; 
         padding: 10px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 50;
     }
@@ -123,7 +123,23 @@
 </div>
 
     </div> <!-- End of Main Content -->
+<!-- Customers / Credit Page -->
+<div id="credit-page" class="hidden">
+    <h1 class="text-2xl font-bold mb-4">Customer Credit Book</h1>
+    
+    <div class="card">
+        <h3 class="text-lg font-semibold mb-2">Add New Customer</h3>
+        <input type="text" id="cust-name" placeholder="Customer Name">
+        <input type="tel" id="cust-phone" placeholder="Phone Number (e.g. 08012345678)">
+        <button class="btn mt-2" onclick="addCustomer()">Save Customer</button>
+        <p id="cust-msg" class="text-green-600 mt-2 font-bold"></p>
+    </div>
 
+    <div class="card">
+        <h3 class="text-lg font-semibold mb-2">Customers Who Owe</h3>
+        <div id="credit-list" class="space-y-2">Loading...</div>
+    </div>
+</div>
     <!-- Mobile Bottom Navigation -->
     <div class="bottom-nav">
         <div class="nav-item active" onclick="showPage('dashboard', this)">
@@ -137,6 +153,9 @@
         </div>
         <div class="nav-item" onclick="showPage('expenses', this)">
             <span class="nav-icon">💸</span> Expenses
+            <div class="nav-item" onclick="showPage('credit', this)">
+    <span class="nav-icon">🤝</span> Credit
+            </div>
         </div>
     </div>
 </div> <!-- End of Main Content -->
@@ -333,6 +352,90 @@
     window.onload = function() {
         loadDashboard();
     };
+    // 8. Customers Logic
+async function loadCustomers() {
+    document.getElementById('credit-list').innerHTML = '<p>Loading...</p>';
+    const { data, error } = await supabaseClient.schema('retail').from('customers').select('*').order('balance', { ascending: false });
+    
+    if (error) {
+        document.getElementById('credit-list').innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`;
+        return;
+    }
+
+    const listDiv = document.getElementById('credit-list');
+    listDiv.innerHTML = '';
+    
+    if (data.length === 0) {
+        listDiv.innerHTML = '<p>No customers found.</p>';
+        return;
+    }
+
+    data.forEach(cust => {
+        // If they owe money, the balance is red. If they have credit (0), it's green.
+        const balanceColor = cust.balance > 0 ? 'text-red-600' : 'text-green-600';
+        const whatsappLink = `https://wa.me/${cust.phone}?text=Hello ${cust.name}, this is a reminder that your balance is ₦${cust.balance}. Please pay soon. Thank you!`;
+        
+        listDiv.innerHTML += `
+            <div style="border-bottom:1px solid #ccc; padding:10px 0;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <p style="font-weight:bold; margin:0;">${cust.name}</p>
+                        <p style="font-size:12px; color:#666; margin:0;">${cust.phone}</p>
+                    </div>
+                    <div style="text-align:right;">
+                        <p class="font-bold ${balanceColor}" style="margin:0;">₦${cust.balance.toLocaleString()}</p>
+                    </div>
+                </div>
+                <div style="margin-top: 10px; display: flex; gap: 10px;">
+                    <button onclick="recordDebt('${cust.id}', ${cust.balance})" style="background:#dcfce7; color:#166534; padding:5px 10px; border-radius:5px; border:1px solid #166534; font-size:12px;">Add Debt</button>
+                    <button onclick="recordPayment('${cust.id}', ${cust.balance})" style="background:#fee2e2; color:#991b1b; padding:5px 10px; border-radius:5px; border:1px solid #991b1b; font-size:12px;">Record Payment</button>
+                    ${cust.balance > 0 ? `<a href="${whatsappLink}" target="_blank" style="background:#25D366; color:white; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:12px; font-weight:bold;">WhatsApp Reminder</a>` : ''}
+                </div>
+            </div>
+        `;
+    });
+}
+
+async function addCustomer() {
+    const name = document.getElementById('cust-name').value;
+    const phone = document.getElementById('cust-phone').value;
+
+    if (!name || !phone) return alert("Please enter both name and phone number.");
+
+    const { error } = await supabaseClient.schema('retail').from('customers').insert([{ name: name, phone: phone, balance: 0 }]);
+    
+    if (error) {
+        alert("Error adding customer: " + error.message);
+    } else {
+        document.getElementById('cust-msg').innerText = "Customer added!";
+        document.getElementById('cust-name').value = '';
+        document.getElementById('cust-phone').value = '';
+        loadCustomers();
+        setTimeout(() => document.getElementById('cust-msg').innerText = '', 3000);
+    }
+}
+
+async function recordDebt(id, currentBalance) {
+    const amount = prompt("Enter amount to ADD to their debt (₦):");
+    if (!amount || isNaN(amount)) return;
+    
+    const newBalance = currentBalance + parseFloat(amount);
+    const { error } = await supabaseClient.schema('retail').from('customers').update({ balance: newBalance }).eq('id', id);
+    
+    if (error) alert("Error: " + error.message);
+    else loadCustomers();
+}
+
+async function recordPayment(id, currentBalance) {
+    const amount = prompt("Enter amount they PAID (₦):");
+    if (!amount || isNaN(amount)) return;
+    
+    const newBalance = currentBalance - parseFloat(amount);
+    const { error } = await supabaseClient.schema('retail').from('customers').update({ balance: newBalance }).eq('id', id);
+    
+    if (error) alert("Error: " + error.message);
+    else loadCustomers();
+}
 </script>
 </body>
 </html>
