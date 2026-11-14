@@ -235,8 +235,8 @@ const totalProfit = profitData.reduce((sum, item) => sum + Number(item.profit), 
 const netProfit = totalProfit - totalExpenses; 
 document.getElementById('dash-profit').innerText = `₦${netProfit.toLocaleString()}`;
 
-                const { data: lowStock, error: e3 } = await supabaseClient.schema('retail').from('products').select('name, quantity').lte('quantity', 5);
-                if (e3) throw new Error(e3.message);
+                const { data: lowStock, error: e4 } = await supabaseClient.schema('retail').from('products').select('name, quantity').lte('quantity', 5);
+                if (e4) throw new Error(e4.message);
 
                 const stockDiv = document.getElementById('dash-low-stock');
                 stockDiv.innerHTML = '';
