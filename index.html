@@ -75,7 +75,10 @@
                 <div id="dash-low-stock" class="space-y-2">Loading...</div>
             </div>
         </div>
-
+<div class="card" style="margin-bottom: 0; grid-column: span 2; background: #ecfdf5; border: 1px solid #10b981;">
+    <h3 class="text-sm text-green-800 font-bold">Today's Net Profit</h3>
+    <p id="dash-profit" class="text-3xl font-bold text-green-700">₦0</p>
+</div>
         <!-- Products Page -->
         <div id="products-page" class="hidden">
             <h1 class="text-2xl font-bold mb-4">Products Inventory</h1>
@@ -83,6 +86,7 @@
                 <h3 class="text-lg font-semibold mb-2">Add New Product</h3>
                 <input type="text" id="prod-name" placeholder="Product Name (e.g., Rice 5kg)">
                 <input type="number" id="prod-price" placeholder="Selling Price (₦)">
+                <input type="number" id="prod-cost" placeholder="Cost Price (How much you bought it for)">
                 <input type="number" id="prod-qty" placeholder="Quantity in Stock">
                 <button class="btn" onclick="addProduct()">Save Product</button>
                 <p id="msg" class="text-green-600 mt-2 font-bold"></p>
@@ -223,6 +227,13 @@
                 if (e2) throw new Error(e2.message);
                 const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
                 document.getElementById('dash-expenses').innerText = `₦${totalExpenses.toLocaleString()}`;
+                // 3. Get today's profit
+const { data: profitData, error: e3 } = await supabaseClient.schema('retail').from('sales').select('profit').gte('created_at', today);
+if (e3) throw new Error(e3.message);
+const totalProfit = profitData.reduce((sum, item) => sum + Number(item.profit), 0);
+// Subtract today's expenses from profit to get Net Profit
+const netProfit = totalProfit - totalExpenses; 
+document.getElementById('dash-profit').innerText = `₦${netProfit.toLocaleString()}`;
 
                 const { data: lowStock, error: e3 } = await supabaseClient.schema('retail').from('products').select('name, quantity').lte('quantity', 5);
                 if (e3) throw new Error(e3.message);
@@ -272,22 +283,32 @@
         }
 
         async function addProduct() {
-            const name = document.getElementById('prod-name').value;
-            const price = document.getElementById('prod-price').value;
-            const qty = document.getElementById('prod-qty').value;
-            if (!name || !price || !qty) return alert("Please fill all fields");
+    const name = document.getElementById('prod-name').value;
+    const price = document.getElementById('prod-price').value;
+    const cost = document.getElementById('prod-cost').value; // NEW LINE
+    const qty = document.getElementById('prod-qty').value;
+    
+    if (!name || !price || !cost || !qty) return alert("Please fill all fields");
 
-            const { error } = await supabaseClient.schema('retail').from('products').insert([{ name: name, selling_price: price, quantity: qty }]);
-            if (error) alert("Error: " + error.message);
-            else {
-                document.getElementById('msg').innerText = "Product added!";
-                document.getElementById('prod-name').value = '';
-                document.getElementById('prod-price').value = '';
-                document.getElementById('prod-qty').value = '';
-                loadProducts();
-                setTimeout(() => document.getElementById('msg').innerText = '', 3000);
-            }
-        }
+    const { error } = await supabaseClient.schema('retail').from('products').insert([{ 
+        name: name, 
+        selling_price: price, 
+        cost_price: cost, // NEW LINE
+        quantity: qty 
+    }]);
+    
+    if (error) alert("Error: " + error.message);
+    else {
+        document.getElementById('msg').innerText = "Product added!";
+        document.getElementById('prod-name').value = '';
+        document.getElementById('prod-price').value = '';
+        document.getElementById('prod-cost').value = ''; // NEW LINE
+        document.getElementById('prod-qty').value = '';
+        loadProducts();
+        setTimeout(() => document.getElementById('msg').innerText = '', 3000);
+    }
+}
+        
 
         // 5. Sales Logic
         async function loadProductDropdown() {
@@ -298,8 +319,8 @@
             dropdown.innerHTML = '<option value="">-- Select a product --</option>';
             
             data.forEach(p => {
-                dropdown.innerHTML += `<option value="${p.id}" data-price="${p.selling_price}" data-stock="${p.quantity}">${p.name} (₦${p.selling_price} - ${p.quantity} in stock)</option>`;
-            });
+    dropdown.innerHTML += `<option value="${p.id}" data-price="${p.selling_price}" data-cost="${p.cost_price}" data-stock="${p.quantity}">${p.name} (₦${p.selling_price} - ${p.quantity} in stock)</option>`;
+});
         }
 
         async function recordSale() {
@@ -313,13 +334,21 @@
     const productId = selectedOption.value;
     const productName = selectedOption.text.split(' (')[0];
     const price = parseFloat(selectedOption.getAttribute('data-price'));
+    const costPrice = parseFloat(selectedOption.getAttribute('data-cost')); // Get cost
     const currentStock = parseFloat(selectedOption.getAttribute('data-stock'));
 
     if (qty > currentStock) return alert("Not enough stock!");
 
     const totalPrice = price * qty;
+    const totalProfit = (price - costPrice) * qty; // Calculate profit
 
-    const { error: saleError } = await supabaseClient.schema('retail').from('sales').insert([{ product_id: productId, product_name: productName, quantity_sold: qty, total_price: totalPrice }]);
+    const { error: saleError } = await supabaseClient.schema('retail').from('sales').insert([{ 
+        product_id: productId, 
+        product_name: productName, 
+        quantity_sold: qty, 
+        total_price: totalPrice,
+        profit: totalProfit // Save profit
+    }]);
     if (saleError) return alert("Error: " + saleError.message);
 
     const { error: stockError } = await supabaseClient.schema('retail').from('products').update({ quantity: currentStock - qty }).eq('id', productId);
@@ -331,15 +360,13 @@
     document.getElementById('receipt-total').innerText = `₦${totalPrice.toLocaleString()}`;
     document.getElementById('receipt-date').innerText = new Date().toLocaleString();
     
-    // Save variables globally for printing/sharing
     window.lastSale = { name: productName, qty: qty, total: totalPrice };
 
     document.getElementById('receipt-modal').classList.remove('hidden');
-            document.getElementById('receipt-modal').style.display = 'flex';
+    document.getElementById('receipt-modal').style.display = 'flex';
     document.getElementById('sale-qty').value = '';
     loadProductDropdown(); 
 }
-
 function closeReceipt() {
     document.getElementById('receipt-modal').classList.add('hidden');
     document.getElementById('receipt-modal').style.display = 'none';
