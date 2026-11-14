@@ -106,7 +106,26 @@
                 <p id="sale-msg" class="text-green-600 mt-2 font-bold"></p>
             </div>
         </div>
+<!-- Receipt Modal (Hidden by default) -->
+<div id="receipt-modal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; display: flex; justify-content: center; align-items: center;">
+    <div id="receipt-content" style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center;">
+        <h2 style="font-weight: bold; font-size: 24px; margin-bottom: 5px;">Ifeka Retail</h2>
+        <p style="font-size: 12px; color: #666; margin-bottom: 20px;">Official Receipt</p>
+        
+        <div style="text-align: left; border-top: 1px dashed #ccc; border-bottom: 1px dashed #ccc; padding: 15px 0; margin-bottom: 20px;">
+            <p><strong>Item:</strong> <span id="receipt-item"></span></p>
+            <p><strong>Quantity:</strong> <span id="receipt-qty"></span></p>
+            <p><strong>Total Paid:</strong> <span id="receipt-total" style="font-weight: bold; color: #059669;"></span></p>
+            <p><strong>Date:</strong> <span id="receipt-date"></span></p>
+        </div>
 
+        <div style="display: flex; gap: 10px;">
+            <button onclick="printReceipt()" style="flex: 1; background: #3b82f6; color: white; padding: 10px; border: none; border-radius: 5px; font-weight: bold;">Print</button>
+            <button onclick="shareReceiptWhatsApp()" style="flex: 1; background: #25D366; color: white; padding: 10px; border: none; border-radius: 5px; font-weight: bold;">WhatsApp</button>
+        </div>
+        <button onclick="closeReceipt()" style="margin-top: 15px; background: #ef4444; color: white; padding: 10px; border: none; border-radius: 5px; width: 100%; font-weight: bold;">Close</button>
+    </div>
+</div>
         <!-- Expenses Page -->
         <div id="expenses-page" class="hidden">
             <h1 class="text-2xl font-bold mb-4">Record an Expense</h1>
@@ -284,31 +303,55 @@
         }
 
         async function recordSale() {
-            const dropdown = document.getElementById('sale-product');
-            const selectedOption = dropdown.options[dropdown.selectedIndex];
-            if (!selectedOption.value) return alert("Please select a product");
-            
-            const qty = parseInt(document.getElementById('sale-qty').value);
-            if (!qty || qty <= 0) return alert("Please enter a valid quantity");
+    const dropdown = document.getElementById('sale-product');
+    const selectedOption = dropdown.options[dropdown.selectedIndex];
+    if (!selectedOption.value) return alert("Please select a product");
+    
+    const qty = parseInt(document.getElementById('sale-qty').value);
+    if (!qty || qty <= 0) return alert("Please enter a valid quantity");
 
-            const productId = selectedOption.value;
-            const productName = selectedOption.text.split(' (')[0];
-            const price = parseFloat(selectedOption.getAttribute('data-price'));
-            const currentStock = parseFloat(selectedOption.getAttribute('data-stock'));
+    const productId = selectedOption.value;
+    const productName = selectedOption.text.split(' (')[0];
+    const price = parseFloat(selectedOption.getAttribute('data-price'));
+    const currentStock = parseFloat(selectedOption.getAttribute('data-stock'));
 
-            if (qty > currentStock) return alert("Not enough stock!");
+    if (qty > currentStock) return alert("Not enough stock!");
 
-            const { error: saleError } = await supabaseClient.schema('retail').from('sales').insert([{ product_id: productId, product_name: productName, quantity_sold: qty, total_price: price * qty }]);
-            if (saleError) return alert("Error: " + saleError.message);
+    const totalPrice = price * qty;
 
-            const { error: stockError } = await supabaseClient.schema('retail').from('products').update({ quantity: currentStock - qty }).eq('id', productId);
-            if (stockError) return alert("Error updating stock: " + stockError.message);
+    const { error: saleError } = await supabaseClient.schema('retail').from('sales').insert([{ product_id: productId, product_name: productName, quantity_sold: qty, total_price: totalPrice }]);
+    if (saleError) return alert("Error: " + saleError.message);
 
-            document.getElementById('sale-msg').innerText = `✅ Sold ${qty} ${productName}!`;
-            document.getElementById('sale-qty').value = '';
-            loadProductDropdown(); 
-            setTimeout(() => document.getElementById('sale-msg').innerText = '', 3000);
-        }
+    const { error: stockError } = await supabaseClient.schema('retail').from('products').update({ quantity: currentStock - qty }).eq('id', productId);
+    if (stockError) return alert("Error updating stock: " + stockError.message);
+
+    // Show the receipt modal
+    document.getElementById('receipt-item').innerText = productName;
+    document.getElementById('receipt-qty').innerText = qty;
+    document.getElementById('receipt-total').innerText = `₦${totalPrice.toLocaleString()}`;
+    document.getElementById('receipt-date').innerText = new Date().toLocaleString();
+    
+    // Save variables globally for printing/sharing
+    window.lastSale = { name: productName, qty: qty, total: totalPrice };
+
+    document.getElementById('receipt-modal').classList.remove('hidden');
+    document.getElementById('sale-qty').value = '';
+    loadProductDropdown(); 
+}
+
+function closeReceipt() {
+    document.getElementById('receipt-modal').classList.add('hidden');
+}
+
+function printReceipt() {
+    window.print();
+}
+
+function shareReceiptWhatsApp() {
+    const sale = window.lastSale;
+    const text = `*IFEKA RETAIL RECEIPT*%0A-------------------%0AItem: ${sale.name}%0AQty: ${sale.qty}%0ATotal: ₦${sale.total.toLocaleString()}%0ADate: ${new Date().toLocaleDateString()}%0A-------------------%0AThank you for your business!`;
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+}
 
         // 6. Expenses Logic
         async function loadExpenses() {
