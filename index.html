@@ -107,7 +107,7 @@
             </div>
         </div>
 <!-- Receipt Modal (Hidden by default) -->
-<div id="receipt-modal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; display: flex; justify-content: center; align-items: center;">
+<div id="receipt-modal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; justify-content: center; align-items: center;">
     <div id="receipt-content" style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center;">
         <h2 style="font-weight: bold; font-size: 24px; margin-bottom: 5px;">Ifeka Retail</h2>
         <p style="font-size: 12px; color: #666; margin-bottom: 20px;">Official Receipt</p>
@@ -335,12 +335,14 @@
     window.lastSale = { name: productName, qty: qty, total: totalPrice };
 
     document.getElementById('receipt-modal').classList.remove('hidden');
+            document.getElementById('receipt-modal').style.display = 'flex';
     document.getElementById('sale-qty').value = '';
     loadProductDropdown(); 
 }
 
 function closeReceipt() {
     document.getElementById('receipt-modal').classList.add('hidden');
+    document.getElementById('receipt-modal').style.display = 'none';
 }
 
 function printReceipt() {
