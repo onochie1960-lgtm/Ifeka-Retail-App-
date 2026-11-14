@@ -381,5 +381,24 @@
             }
         }
 
-        async function recordDebt(id, currentBalance) {
-            const amount = prompt("Enter amount to ADD to their
+            async function recordDebt(id, currentBalance) {
+        const amount = prompt("Enter amount to ADD to their debt (₦):");
+        if (!amount || isNaN(amount)) return;
+        const { error } = await supabaseClient.schema('retail').from('customers').update({ balance: currentBalance + parseFloat(amount) }).eq('id', id);
+        if (error) alert("Error: " + error.message);
+        else loadCustomers();
+    }
+
+    async function recordPayment(id, currentBalance) {
+        const amount = prompt("Enter amount they PAID (₦):");
+        if (!amount || isNaN(amount)) return;
+        const { error } = await supabaseClient.schema('retail').from('customers').update({ balance: currentBalance - parseFloat(amount) }).eq('id', id);
+        if (error) alert("Error: " + error.message);
+        else loadCustomers();
+    }
+
+    // 8. Auto-load Dashboard
+    window.onload = function() { loadDashboard(); };
+</script>
+</body>
+</html>
