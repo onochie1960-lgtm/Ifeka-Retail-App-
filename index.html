@@ -390,12 +390,20 @@
     }
 
     async function recordPayment(id, currentBalance) {
-        const amount = prompt("Enter amount they PAID (₦):");
-        if (!amount || isNaN(amount)) return;
-        const { error } = await supabaseClient.schema('retail').from('customers').update({ balance: currentBalance - parseFloat(amount) }).eq('id', id);
-        if (error) alert("Error: " + error.message);
-        else loadCustomers();
+    const amount = prompt("Enter amount they PAID (₦):");
+    if (!amount || isNaN(amount)) return;
+    
+    const paymentAmount = parseFloat(amount);
+    
+    // This prevents paying more than they owe
+    if (paymentAmount > currentBalance) {
+        return alert("Error: They only owe ₦" + currentBalance.toLocaleString());
     }
+    
+    const { error } = await supabaseClient.schema('retail').from('customers').update({ balance: currentBalance - paymentAmount }).eq('id', id);
+    if (error) alert("Error: " + error.message);
+    else loadCustomers();
+}
 
     // 8. Auto-load Dashboard
     window.onload = function() { loadDashboard(); };
