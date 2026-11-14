@@ -348,7 +348,7 @@
 <script>
     // 1. Setup Supabase
     const SUPABASE_URL = 'https://ywpavqscnepilxislstm.supabase.co';
-    const SUPABASE_KEY = 'PASTE_YOUR_ANON_KEY_HERE'; // <--- PASTE YOUR KEY HERE
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3cGF2cXNlbmNwaWx4aXNsdHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxMzU1OTAsImV4cCI6MjEwMjcxMTU5MH0.7NblgPa1zhyVzmZzwLuf_qAMJDhFEdRcvDEaIDJk37E'; // <--- PASTE YOUR KEY HERE
 
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -488,6 +488,92 @@
 
     async function addProduct() {
         const name = document.getElementById('prod-name').value;
+<script>
+    // 1. Setup Supabase
+    const SUPABASE_URL = 'https://ywpavqscnepilxislstm.supabase.co';
+    const SUPABASE_KEY = 'PASTE_YOUR_FULL_EYJ_KEY_HERE'; // MAKE SURE YOUR KEY IS BETWEEN THE QUOTES
+
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // 2. Navigation Logic
+    function showPage(pageId, element) {
+        document.querySelectorAll('.main-content > div').forEach(div => div.classList.add('hidden'));
+        document.getElementById(pageId + '-page').classList.remove('hidden');
+        
+        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+        if(element) element.classList.add('active');
+
+        if(pageId === 'dashboard') loadDashboard();
+        if(pageId === 'products') loadProducts();
+        if(pageId === 'sales') loadProductDropdown(); 
+        if(pageId === 'expenses') loadExpenses(); 
+        if(pageId === 'credit') loadCustomers(); 
+    }
+
+    // 3. Dashboard Logic
+    async function loadDashboard() {
+        try {
+            const today = new Date().toISOString().split('T')[0];
+            
+            const { data: sales, error: e1 } = await supabaseClient.schema('retail').from('sales').select('total_price').gte('created_at', today);
+            if (e1) throw new Error(e1.message);
+            const totalSales = sales.reduce((sum, item) => sum + Number(item.total_price), 0);
+            document.getElementById('dash-sales').innerText = `₦${totalSales.toLocaleString()}`;
+
+            const { data: expenses, error: e2 } = await supabaseClient.schema('retail').from('expenses').select('amount').gte('created_at', today);
+            if (e2) throw new Error(e2.message);
+            const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
+            document.getElementById('dash-expenses').innerText = `₦${totalExpenses.toLocaleString()}`;
+
+            const { data: lowStock, error: e3 } = await supabaseClient.schema('retail').from('products').select('name, quantity').lte('quantity', 5);
+            if (e3) throw new Error(e3.message);
+
+            const stockDiv = document.getElementById('dash-low-stock');
+            stockDiv.innerHTML = '';
+            
+            if (lowStock.length === 0) {
+                stockDiv.innerHTML = '<p class="text-gray-500">All products are well stocked!</p>';
+            } else {
+                lowStock.forEach(p => {
+                    stockDiv.innerHTML += `
+                        <div style="display:flex; justify-content:space-between; border-bottom:1px solid #ccc; padding:10px 0;">
+                            <span style="font-weight:bold;">${p.name}</span>
+                            <span style="color:red; font-weight:bold;">${p.quantity} left</span>
+                        </div>
+                    `;
+                });
+            }
+        } catch (err) {
+            alert("DASHBOARD ERROR: " + err.message);
+        }
+    }
+
+    // 4. Products Logic
+    async function loadProducts() {
+        const { data, error } = await supabaseClient.schema('retail').from('products').select('*').order('created_at', { ascending: false });
+        if (error) return alert("Error: " + error.message);
+
+        const listDiv = document.getElementById('product-list');
+        listDiv.innerHTML = data.length === 0 ? '<p>No products found.</p>' : '';
+        
+        data.forEach(product => {
+            const badgeColor = product.quantity <= 5 ? 'background:#fee2e2; color:#991b1b;' : 'background:#dcfce7; color:#166534;';
+            listDiv.innerHTML += `
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ccc; padding:10px 0;">
+                    <div>
+                        <p style="font-weight:bold; margin:0;">${product.name}</p>
+                        <p style="font-size:12px; color:#666; margin:0;">₦${product.selling_price}</p>
+                    </div>
+                    <div style="padding:5px 10px; border-radius:5px; font-weight:bold; ${badgeColor}">
+                        ${product.quantity} in stock
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    async function addProduct() {
+        const name = document.getElementById('prod-name').value;
         const price = document.getElementById('prod-price').value;
         const qty = document.getElementById('prod-qty').value;
         if (!name || !price || !qty) return alert("Please fill all fields");
@@ -575,7 +661,7 @@
         listDiv.innerHTML = data.length === 0 ? '<p>No customers found.</p>' : '';
         
         data.forEach(cust => {
-            const balanceColor = cust.balance > 0 ? 'text-red-600' : 'text-green-600';
+            const balanceColor = cust.balance > 0 ? 'color:red;' : 'color:green;';
             const whatsappLink = `https://wa.me/${cust.phone}?text=Hello ${cust.name}, your balance is ₦${cust.balance}. Please pay soon.`;
             
             listDiv.innerHTML += `
@@ -586,7 +672,7 @@
                             <p style="font-size:12px; color:#666; margin:0;">${cust.phone}</p>
                         </div>
                         <div style="text-align:right;">
-                            <p class="font-bold ${balanceColor}" style="margin:0;">₦${cust.balance.toLocaleString()}</p>
+                            <p style="font-weight:bold; margin:0; ${balanceColor}">₦${cust.balance.toLocaleString()}</p>
                         </div>
                     </div>
                     <div style="margin-top: 10px; display: flex; gap: 10px;">
