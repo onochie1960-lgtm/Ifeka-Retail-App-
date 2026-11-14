@@ -342,8 +342,9 @@
             
             data.forEach(cust => {
                 const balanceColor = cust.balance > 0 ? 'color:red;' : 'color:green;';
-                const whatsappLink = `https://wa.me/${cust.phone}?text=Hello ${cust.name}, your balance is ₦${cust.balance}. Please pay soon.`;
-                
+                // Format phone: remove leading 0, add 234 if it starts with 0
+const cleanPhone = cust.phone.startsWith('0') ? '234' + cust.phone.slice(1) : cust.phone;
+const whatsappLink = `https://wa.me/${cleanPhone}?text=Hello ${cust.name}, your balance is ₦${cust.balance}. Please pay soon.`;
                 listDiv.innerHTML += `
                     <div style="border-bottom:1px solid #ccc; padding:10px 0;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
