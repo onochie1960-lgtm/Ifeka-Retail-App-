@@ -115,6 +115,8 @@
             <div class="card">
                 <h3 class="text-lg font-semibold mb-2">New Sale</h3>
                 <label class="block mb-1">Select Product:</label>
+                <button class="btn" style="background: #3b82f6; margin-bottom: 15px;" onclick="startScanner('sale-scan-input')">📷 Scan Barcode to Sell</button>
+<input type="hidden" id="sale-scan-input" onchange="handleSaleScan(this.value)">
                 <select id="sale-product" class="w-full p-3 mb-4 border rounded"></select>
                 <label class="block mb-1">Quantity Sold:</label>
                 <input type="number" id="sale-qty" placeholder="How many?">
@@ -774,6 +776,7 @@ function startScanner(targetInputId) {
         (decodedText) => {
             // Success! Put the barcode in the input field
             document.getElementById(targetInputId).value = decodedText;
+document.getElementById(targetInputId).dispatchEvent(new Event('change')); // Triggers the lookup
             stopScanner();
         },
         (errorMessage) => {
@@ -793,7 +796,42 @@ function stopScanner() {
             document.getElementById('scanner-modal').style.display = 'none';
         }).catch(err => console.log(err));
     }
-}   
+} 
+        // 13. Handle Barcode Scan for Sales
+async function handleSaleScan(barcode) {
+    if (!barcode) return;
+    
+    try {
+        // Find the product in Supabase with this barcode
+        const { data: product, error } = await supabaseClient
+            .schema('retail')
+            .from('products')
+            .select('*')
+            .eq('barcode', barcode)
+            .single();
+
+        if (error || !product) {
+            return alert("❌ Product not found! Please add it in the Inventory tab first.");
+        }
+
+        // Auto-select the product in the dropdown
+        const dropdown = document.getElementById('sale-product');
+        dropdown.value = product.id;
+        
+        // Set quantity to 1 by default
+        document.getElementById('sale-qty').value = 1;
+
+        // Let the user know it worked
+        document.getElementById('sale-msg').innerText = `✅ Found: ${product.name} (₦${product.selling_price})`;
+        setTimeout(() => document.getElementById('sale-msg').innerText = '', 3000);
+
+    } catch (err) {
+        alert("Error scanning: " + err.message);
+    } finally {
+        // Clear the hidden input so you can scan again
+        document.getElementById('sale-scan-input').value = '';
+    }
+}
 </script>
 </body>
 </html>
