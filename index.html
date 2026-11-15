@@ -225,13 +225,17 @@
                 const { data: expenses, error: e2 } = await supabaseClient.schema('retail').from('expenses').select('amount').gte('created_at', today);
                 if (e2) throw new Error(e2.message);
                 const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
-                document.getElementById('dash-expenses').innerText = `₦${totalExpenses.toLocaleString()}`;
                 // 3. Get today's profit
 const { data: profitData, error: e3 } = await supabaseClient.schema('retail').from('sales').select('profit').gte('created_at', today);
 if (e3) throw new Error(e3.message);
-const totalProfit = profitData.reduce((sum, item) => sum + Number(item.profit), 0);
-// Subtract today's expenses from profit to get Net Profit
-const netProfit = totalProfit - totalExpenses; 
+
+// Calculate total profit from sales (Sales - Cost of Goods)
+const totalProfitFromSales = profitData.reduce((sum, item) => sum + Number(item.profit), 0);
+
+// Net Profit = Total Profit - Expenses
+const netProfit = totalProfitFromSales - totalExpenses; 
+
+// Update the display
 document.getElementById('dash-profit').innerText = `₦${netProfit.toLocaleString()}`;
 
                 const { data: lowStock, error: e4 } = await supabaseClient.schema('retail').from('products').select('name, quantity').lte('quantity', 5);
