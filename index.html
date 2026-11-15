@@ -33,7 +33,7 @@
         .nav-item { 
             color: white; 
             text-align: center; 
-            font-size: 10px; 
+            font-size: 9px; 
             cursor: pointer; 
             flex: 1; 
             display: flex; 
@@ -168,9 +168,24 @@
                 <div id="credit-list" class="space-y-2">Loading...</div>
             </div>
         </div>
+<!-- History Page -->
+<div id="history-page" class="hidden">
+    <h1 class="text-2xl font-bold mb-4">Sales & Expenses History</h1>
+    
+    <div class="card">
+        <h3 class="text-lg font-semibold mb-2">Recent Sales</h3>
+        <div id="history-sales-list" class="space-y-2">Loading...</div>
+    </div>
 
+    <div class="card">
+        <h3 class="text-lg font-semibold mb-2">Recent Expenses</h3>
+        <div id="history-expenses-list" class="space-y-2">Loading...</div>
+    </div>
+</div>
     </div> <!-- End of Main Content -->
-
+<div class="nav-item" onclick="showPage('history', this)">
+    <span class="nav-icon">📜</span> History
+</div>
     <!-- Mobile Bottom Navigation -->
     <div class="bottom-nav">
         <div class="nav-item active" onclick="showPage('dashboard', this)">
@@ -210,6 +225,7 @@
             if(pageId === 'sales') loadProductDropdown(); 
             if(pageId === 'expenses') loadExpenses(); 
             if(pageId === 'credit') loadCustomers(); 
+            if(pageId === 'history') loadHistory();
         }
 
         // 3. Dashboard Logic
@@ -517,6 +533,53 @@ const whatsappLink = `https://wa.me/${cleanPhone}?text=Hello ${cust.name}, your 
 
     // 8. Auto-load Dashboard
     window.onload = function() { loadDashboard(); };
+        
+        // 9. History Logic
+async function loadHistory() {
+    // Load Sales
+    const { data: sales } = await supabaseClient.schema('retail').from('sales').select('*').order('created_at', { ascending: false }).limit(20);
+    const salesDiv = document.getElementById('history-sales-list');
+    salesDiv.innerHTML = '';
+    
+    if (!sales || sales.length === 0) {
+        salesDiv.innerHTML = '<p>No sales recorded yet.</p>';
+    } else {
+        sales.forEach(sale => {
+            const date = new Date(sale.created_at).toLocaleDateString();
+            salesDiv.innerHTML += `
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:8px 0;">
+                    <div>
+                        <p style="font-weight:bold; margin:0;">${sale.product_name} (x${sale.quantity_sold})</p>
+                        <p style="font-size:10px; color:#666; margin:0;">${date}</p>
+                    </div>
+                    <p style="font-weight:bold; color:green; margin:0;">₦${Number(sale.total_price).toLocaleString()}</p>
+                </div>
+            `;
+        });
+    }
+
+    // Load Expenses
+    const { data: expenses } = await supabaseClient.schema('retail').from('expenses').select('*').order('created_at', { ascending: false }).limit(20);
+    const expDiv = document.getElementById('history-expenses-list');
+    expDiv.innerHTML = '';
+    
+    if (!expenses || expenses.length === 0) {
+        expDiv.innerHTML = '<p>No expenses recorded yet.</p>';
+    } else {
+        expenses.forEach(exp => {
+            const date = new Date(exp.created_at).toLocaleDateString();
+            expDiv.innerHTML += `
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:8px 0;">
+                    <div>
+                        <p style="font-weight:bold; margin:0;">${exp.description}</p>
+                        <p style="font-size:10px; color:#666; margin:0;">${exp.category} • ${date}</p>
+                    </div>
+                    <p style="font-weight:bold; color:red; margin:0;">-₦${Number(exp.amount).toLocaleString()}</p>
+                </div>
+            `;
+        });
+    }
+}
 </script>
 </body>
 </html>
