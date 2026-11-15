@@ -33,7 +33,7 @@
         .nav-item { 
             color: white; 
             text-align: center; 
-            font-size: 9px; 
+            font-size: 8px; 
             cursor: pointer; 
             flex: 1; 
             display: flex; 
@@ -42,7 +42,7 @@
             justify-content: center;
         }
         .nav-item.active { color: #34d399; font-weight: bold; }
-        .nav-icon { font-size: 20px; margin-bottom: 2px; }
+        .nav-icon { font-size: 18px; margin-bottom: 2px; }
 
         /* Main Content */
         .main-content { padding: 20px; max-width: 600px; margin: 0 auto; width: 100%; box-sizing: border-box; }
@@ -189,7 +189,22 @@
     </div>
 </div>
     </div> <!-- End of Main Content -->
-
+    
+<!-- Suppliers Page -->
+<div id="suppliers-page" class="hidden">
+    <h1 class="text-2xl font-bold mb-4">Suppliers & Restocking</h1>
+    <div class="card">
+        <h3 class="text-lg font-semibold mb-2">Add New Supplier</h3>
+        <input type="text" id="supp-name" placeholder="Supplier Name">
+        <input type="tel" id="supp-phone" placeholder="Phone Number">
+        <button class="btn mt-2" onclick="addSupplier()">Save Supplier</button>
+        <p id="supp-msg" class="text-green-600 mt-2 font-bold"></p>
+    </div>
+    <div class="card">
+        <h3 class="text-lg font-semibold mb-2">Suppliers You Owe</h3>
+        <div id="supplier-list" class="space-y-2">Loading...</div>
+    </div>
+</div>
     <!-- Mobile Bottom Navigation -->
 <div class="bottom-nav">
     <div class="nav-item active" onclick="showPage('dashboard', this)">
@@ -210,6 +225,9 @@
     <div class="nav-item" onclick="showPage('history', this)">
         <span class="nav-icon">📜</span> History
     </div>
+    <div class="nav-item" onclick="showPage('suppliers', this)">
+    <span class="nav-icon">🚚</span> Suppliers
+</div>
 </div>
 
     <!-- JavaScript Logic -->
@@ -233,6 +251,7 @@
             if(pageId === 'expenses') loadExpenses(); 
             if(pageId === 'credit') loadCustomers(); 
             if(pageId === 'history') loadHistory();
+            if(pageId === 'suppliers') loadSuppliers();
         }
 
         // 3. Dashboard Logic
@@ -611,6 +630,79 @@ async function loadHistory() {
             `;
         });
     }
+}
+        // 10. Suppliers Logic
+async function loadSuppliers() {
+    try {
+        const { data, error } = await supabaseClient.schema('retail').from('suppliers').select('*').order('balance', { ascending: false });
+        if (error) throw new Error(error.message);
+
+        const listDiv = document.getElementById('supplier-list');
+        listDiv.innerHTML = data.length === 0 ? '<p>No suppliers found.</p>' : '';
+        
+        data.forEach(supp => {
+            const balanceColor = supp.balance > 0 ? 'color:red;' : 'color:green;';
+            const cleanPhone = supp.phone && supp.phone.startsWith('0') ? '234' + supp.phone.slice(1) : supp.phone;
+            const whatsappLink = `https://wa.me/${cleanPhone}?text=Hello ${supp.name}, I want to make an order / discuss my balance.`;
+            
+            listDiv.innerHTML += `
+                <div style="border-bottom:1px solid #ccc; padding:10px 0;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <p style="font-weight:bold; margin:0;">${supp.name}</p>
+                            <p style="font-size:12px; color:#666; margin:0;">${supp.phone || 'No phone'}</p>
+                        </div>
+                        <div style="text-align:right;">
+                            <p style="font-weight:bold; margin:0; ${balanceColor}">₦${supp.balance.toLocaleString()}</p>
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button onclick="recordSupplierDebt('${supp.id}', ${supp.balance})" style="background:#fee2e2; color:#991b1b; padding:5px 10px; border-radius:5px; border:1px solid #991b1b; font-size:12px;">I Owe Them</button>
+                        <button onclick="paySupplier('${supp.id}', ${supp.balance})" style="background:#dcfce7; color:#166534; padding:5px 10px; border-radius:5px; border:1px solid #166534; font-size:12px;">Pay Supplier</button>
+                        ${supp.phone ? `<a href="${whatsappLink}" target="_blank" style="background:#25D366; color:white; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:12px; font-weight:bold;">WhatsApp</a>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+    } catch (err) {
+        alert("SUPPLIERS ERROR: " + err.message);
+    }
+}
+
+async function addSupplier() {
+    const name = document.getElementById('supp-name').value;
+    const phone = document.getElementById('supp-phone').value;
+    if (!name) return alert("Please enter a supplier name");
+
+    const { error } = await supabaseClient.schema('retail').from('suppliers').insert([{ name: name, phone: phone, balance: 0 }]);
+    if (error) alert("Error: " + error.message);
+    else {
+        document.getElementById('supp-msg').innerText = "Supplier added!";
+        document.getElementById('supp-name').value = '';
+        document.getElementById('supp-phone').value = '';
+        await loadSuppliers();
+        setTimeout(() => document.getElementById('supp-msg').innerText = '', 3000);
+    }
+}
+
+async function recordSupplierDebt(id, currentBalance) {
+    const amount = prompt("Enter amount you OWE this supplier (₦):");
+    if (!amount || isNaN(amount)) return;
+    const { error } = await supabaseClient.schema('retail').from('suppliers').update({ balance: currentBalance + parseFloat(amount) }).eq('id', id);
+    if (error) alert("Error: " + error.message);
+    else loadSuppliers();
+}
+
+async function paySupplier(id, currentBalance) {
+    const amount = prompt("Enter amount you PAID the supplier (₦):");
+    if (!amount || isNaN(amount)) return;
+    
+    const paymentAmount = parseFloat(amount);
+    if (paymentAmount > currentBalance) return alert("Error: You only owe ₦" + currentBalance.toLocaleString());
+    
+    const { error } = await supabaseClient.schema('retail').from('suppliers').update({ balance: currentBalance - paymentAmount }).eq('id', id);
+    if (error) alert("Error: " + error.message);
+    else loadSuppliers();
 }
 </script>
 </body>
