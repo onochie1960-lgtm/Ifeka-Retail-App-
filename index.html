@@ -72,6 +72,10 @@
             </div>
             <div class="card">
                 <h3 class="text-lg font-semibold mb-2">Needs Restocking (Below 5)</h3>
+                <div class="card" style="margin-bottom: 0; margin-top: 20px; background: #ecfdf5; border: 1px solid #10b981;">
+    <h3 class="text-sm text-green-800 font-bold">Today's Net Profit</h3>
+    <p id="dash-profit" class="text-3xl font-bold text-green-700">₦0</p>
+</div>
                 <div id="dash-low-stock" class="space-y-2">Loading...</div>
             </div>
         </div>
@@ -335,7 +339,32 @@ document.getElementById('dash-profit').innerText = `₦${netProfit.toLocaleStrin
         alert("DASHBOARD ERROR: " + err.message);
     }
 }
+async function loadProducts() {
+    try {
+        const { data, error } = await supabaseClient.schema('retail').from('products').select('*').order('created_at', { ascending: false });
+        if (error) throw new Error(error.message);
 
+        const listDiv = document.getElementById('product-list');
+        listDiv.innerHTML = data.length === 0 ? '<p>No products found.</p>' : '';
+        
+        data.forEach(product => {
+            const badgeColor = product.quantity <= 5 ? 'background:#fee2e2; color:#991b1b;' : 'background:#dcfce7; color:#166534;';
+            listDiv.innerHTML += `
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ccc; padding:10px 0;">
+                    <div>
+                        <p style="font-weight:bold; margin:0;">${product.name}</p>
+                        <p style="font-size:12px; color:#666; margin:0;">₦${product.selling_price}</p>
+                    </div>
+                    <div style="padding:5px 10px; border-radius:5px; font-weight:bold; ${badgeColor}">
+                        ${product.quantity} in stock
+                    </div>
+                </div>
+            `;
+        });
+    } catch (err) {
+        alert("PRODUCTS ERROR: " + err.message);
+    }
+}
         async function addProduct() {
     const name = document.getElementById('prod-name').value;
     const price = document.getElementById('prod-price').value;
