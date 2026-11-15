@@ -110,20 +110,37 @@
         </div>
 
         <!-- Sales Page -->
-        <div id="sales-page" class="hidden">
-            <h1 class="text-2xl font-bold mb-4">Record a Sale</h1>
-            <div class="card">
-                <h3 class="text-lg font-semibold mb-2">New Sale</h3>
-                <label class="block mb-1">Select Product:</label>
-                <button class="btn" style="background: #3b82f6; margin-bottom: 15px;" onclick="startScanner('sale-scan-input')">📷 Scan Barcode to Sell</button>
-<input type="hidden" id="sale-scan-input" onchange="handleSaleScan(this.value)">
-                <select id="sale-product" class="w-full p-3 mb-4 border rounded"></select>
-                <label class="block mb-1">Quantity Sold:</label>
-                <input type="number" id="sale-qty" placeholder="How many?">
-                <button class="btn" onclick="recordSale()">Save Sale</button>
-                <p id="sale-msg" class="text-green-600 mt-2 font-bold"></p>
-            </div>
+<div id="sales-page" class="hidden">
+    <h1 class="text-2xl font-bold mb-4">Record a Sale (POS)</h1>
+    
+    <div class="card">
+        <h3 class="text-lg font-semibold mb-2">Add to Cart</h3>
+        <button class="btn" style="background: #3b82f6; margin-bottom: 15px;" onclick="startScanner('sale-scan-input')">📷 Scan Barcode</button>
+        <input type="hidden" id="sale-scan-input" onchange="handleSaleScan(this.value)">
+        
+        <label class="block mb-1">Or Select Product:</label>
+        <select id="sale-product" class="w-full p-3 mb-4 border rounded"></select>
+        
+        <label class="block mb-1">Quantity:</label>
+        <input type="number" id="sale-qty" placeholder="How many?" value="1">
+        
+        <button class="btn mt-2" style="background: #10b981;" onclick="addToCart()">➕ Add to Cart</button>
+    </div>
+
+    <!-- Cart Section -->
+    <div class="card" style="border: 2px solid #10b981;">
+        <h3 class="text-lg font-semibold mb-2">🛒 Current Cart</h3>
+        <div id="cart-items" class="space-y-2 mb-4">
+            <p class="text-gray-500">Cart is empty.</p>
         </div>
+        <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; margin-bottom: 15px; border-top: 1px solid #ccc; padding-top: 10px;">
+            <span>Total:</span>
+            <span id="cart-total" style="color: #059669;">₦0</span>
+        </div>
+        <button class="btn" style="background: #059669; padding: 15px;" onclick="checkout()">✅ Checkout & Print Receipt</button>
+        <button onclick="clearCart()" style="width: 100%; margin-top: 10px; background: #ef4444; color: white; padding: 10px; border: none; border-radius: 5px; font-weight: bold;">Clear Cart</button>
+    </div>
+</div>
 <!-- Receipt Modal (Hidden by default) -->
 <div id="receipt-modal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; justify-content: center; align-items: center;">
     <div id="receipt-content" style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center;">
@@ -511,10 +528,14 @@ function printReceipt() {
 
 function shareReceiptWhatsApp() {
     const sale = window.lastSale;
-    const text = `*IFEKA RETAIL RECEIPT*%0A-------------------%0AItem: ${sale.name}%0AQty: ${sale.qty}%0ATotal: ₦${sale.total.toLocaleString()}%0ADate: ${new Date().toLocaleDateString()}%0A-------------------%0AThank you for your business!`;
-    window.open(`https://wa.me/?text=${text}`, '_blank');
+    if (sale.isCart) {
+        window.open(`https://wa.me/?text=${sale.whatsappText}`, '_blank');
+    } else {
+        // Fallback for single items
+        const text = `*IFEKA RETAIL RECEIPT*%0A-------------------%0AItem: ${sale.name}%0AQty: ${sale.qty}%0ATotal: ₦${sale.total.toLocaleString()}%0ADate: ${new Date().toLocaleDateString()}%0A-------------------%0AThank you!`;
+        window.open(`https://wa.me/?text=${text}`, '_blank');
+    }
 }
-
         // 6. Expenses Logic
         async function loadExpenses() {
             document.getElementById('exp-amount').value = '';
@@ -832,6 +853,184 @@ async function handleSaleScan(barcode) {
         document.getElementById('sale-scan-input').value = '';
     }
 }
+        // --- CART LOGIC ---
+let currentCart = []; // This holds the items before checkout
+
+async function loadProductDropdown() {
+    const { data, error } = await supabaseClient.schema('retail').from('products').select('*');
+    if (error) return alert("Error: " + error.message);
+
+    const dropdown = document.getElementById('sale-product');
+    dropdown.innerHTML = '<option value="">-- Select a product --</option>';
+    
+    data.forEach(p => {
+        dropdown.innerHTML += `<option value="${p.id}" data-name="${p.name}" data-price="${p.selling_price}" data-cost="${p.cost_price}" data-stock="${p.quantity}">${p.name} (₦${p.selling_price} - ${p.quantity} in stock)</option>`;
+    });
+}
+
+function addToCart() {
+    const dropdown = document.getElementById('sale-product');
+    const selectedOption = dropdown.options[dropdown.selectedIndex];
+    const qty = parseInt(document.getElementById('sale-qty').value);
+
+    if (!selectedOption.value) return alert("Please select a product");
+    if (!qty || qty <= 0) return alert("Please enter a valid quantity");
+
+    const productId = selectedOption.value;
+    const productName = selectedOption.getAttribute('data-name');
+    const price = parseFloat(selectedOption.getAttribute('data-price'));
+    const costPrice = parseFloat(selectedOption.getAttribute('data-cost'));
+    const currentStock = parseFloat(selectedOption.getAttribute('data-stock'));
+
+    // Check if item is already in cart
+    const existingItem = currentCart.find(item => item.id === productId);
+    const totalQty = existingItem ? existingItem.qty + qty : qty;
+
+    if (totalQty > currentStock) return alert("Not enough stock! You only have " + currentStock);
+
+    if (existingItem) {
+        existingItem.qty += qty; // Update quantity if already in cart
+    } else {
+        currentCart.push({
+            id: productId,
+            name: productName,
+            price: price,
+            cost: costPrice,
+            qty: qty
+        });
+    }
+
+    renderCart();
+}
+
+function renderCart() {
+    const cartDiv = document.getElementById('cart-items');
+    const totalDiv = document.getElementById('cart-total');
+    cartDiv.innerHTML = '';
+    let total = 0;
+
+    if (currentCart.length === 0) {
+        cartDiv.innerHTML = '<p class="text-gray-500">Cart is empty.</p>';
+    } else {
+        currentCart.forEach((item, index) => {
+            const itemTotal = item.price * item.qty;
+            total += itemTotal;
+            cartDiv.innerHTML += `
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:5px 0;">
+                    <div>
+                        <p style="font-weight:bold; margin:0;">${item.name}</p>
+                        <p style="font-size:12px; color:#666; margin:0;">${item.qty} x ₦${item.price}</p>
+                    </div>
+                    <div style="text-align:right;">
+                        <p style="font-weight:bold; margin:0;">₦${itemTotal.toLocaleString()}</p>
+                        <button onclick="removeFromCart(${index})" style="color:red; background:none; border:none; font-size:12px; cursor:pointer;">Remove</button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    totalDiv.innerText = `₦${total.toLocaleString()}`;
+    document.getElementById('sale-qty').value = 1; // reset qty
+}
+
+function removeFromCart(index) {
+    currentCart.splice(index, 1);
+    renderCart();
+}
+
+function clearCart() {
+    currentCart = [];
+    renderCart();
+}
+
+async function checkout() {
+    if (currentCart.length === 0) return alert("Cart is empty!");
+    
+    const txId = crypto.randomUUID(); // Group all items under one transaction ID
+    let totalReceiptAmount = 0;
+    let receiptText = `*IFEKA RETAIL RECEIPT*%0A-------------------%0A`;
+
+    try {
+        // Loop through the cart and save each item
+        for (const item of currentCart) {
+            const totalPrice = item.price * item.qty;
+            const profit = (item.price - item.cost) * item.qty;
+            totalReceiptAmount += totalPrice;
+
+            // 1. Save to database
+            const { error: saleError } = await supabaseClient.schema('retail').from('sales').insert([{ 
+                transaction_id: txId,
+                product_id: item.id, 
+                product_name: item.name, 
+                quantity_sold: item.qty, 
+                total_price: totalPrice,
+                profit: profit
+            }]);
+            if (saleError) throw new Error(saleError.message);
+
+            // 2. Update Stock (Get current stock first)
+            const { data: pData } = await supabaseClient.schema('retail').from('products').select('quantity').eq('id', item.id).single();
+            const newStock = pData.quantity - item.qty;
+            
+            const { error: stockError } = await supabaseClient.schema('retail').from('products').update({ quantity: newStock }).eq('id', item.id);
+            if (stockError) throw new Error(stockError.message);
+
+            // 3. Add to WhatsApp Receipt text
+            receiptText += `${item.name} (x${item.qty}): ₦${totalPrice.toLocaleString()}%0A`;
+        }
+
+        receiptText += `-------------------%0A*TOTAL: ₦${totalReceiptAmount.toLocaleString()}*%0ADate: ${new Date().toLocaleDateString()}%0AThank you for your business!`;
+
+        // Show the Receipt Modal
+        document.getElementById('receipt-item').innerText = "Multiple Items";
+        document.getElementById('receipt-qty').innerText = currentCart.reduce((sum, i) => sum + i.qty, 0);
+        document.getElementById('receipt-total').innerText = `₦${totalReceiptAmount.toLocaleString()}`;
+        document.getElementById('receipt-date').innerText = new Date().toLocaleString();
+        
+        // Save data for WhatsApp sharing
+        window.lastSale = { whatsappText: receiptText, total: totalReceiptAmount, isCart: true };
+
+        document.getElementById('receipt-modal').classList.remove('hidden');
+        document.getElementById('receipt-modal').style.display = 'flex';
+        
+        clearCart(); // Empty the cart
+
+    } catch (err) {
+        alert("CHECKOUT ERROR: " + err.message);
+    }
+}
+
+// Update handleSaleScan to add to cart automatically
+async function handleSaleScan(barcode) {
+    if (!barcode) return;
+    
+    try {
+        const { data: product, error } = await supabaseClient.schema('retail').from('products').select('*').eq('barcode', barcode).single();
+
+        if (error || !product) {
+            alert("❌ Product not found! Please add it in the Inventory tab first.");
+            return;
+        }
+
+        // If found, automatically add 1 to cart
+        const existingItem = currentCart.find(item => item.id === product.id);
+        if (existingItem) {
+            existingItem.qty += 1;
+        } else {
+            currentCart.push({ id: product.id, name: product.name, price: product.selling_price, cost: product.cost_price, qty: 1 });
+        }
+        
+        renderCart();
+        document.getElementById('sale-msg').innerText = `✅ Scanned: ${product.name}`;
+        setTimeout(() => document.getElementById('sale-msg').innerText = '', 3000);
+
+    } catch (err) {
+        alert("Error scanning: " + err.message);
+    } finally {
+        document.getElementById('sale-scan-input').value = '';
+    }
+}
+// --- END CART LOGIC ---
 </script>
 </body>
 </html>
