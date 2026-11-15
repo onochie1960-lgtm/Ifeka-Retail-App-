@@ -99,6 +99,7 @@
             </div>
             <div class="card">
                 <h3 class="text-lg font-semibold mb-2">Current Inventory</h3>
+                <input type="text" id="product-search" placeholder="🔍 Search products..." onkeyup="filterProducts()" style="margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; width: 100%;">
                 <div id="product-list" class="space-y-2">Loading...</div>
             </div>
         </div>
@@ -177,6 +178,7 @@
 <!-- History Page -->
 <div id="history-page" class="hidden">
     <h1 class="text-2xl font-bold mb-4">Sales & Expenses History</h1>
+    <button class="btn" style="background: #3b82f6; margin-bottom: 20px;" onclick="downloadReport()">📥 Download Report (CSV)</button>
     <div class="card">
         <h3 class="text-lg font-semibold mb-2">Recent Sales</h3>
         <div id="history-sales-list" class="space-y-2">Loading...</div>
@@ -358,31 +360,44 @@ document.getElementById('dash-profit').innerText = `₦${netProfit.toLocaleStrin
         alert("DASHBOARD ERROR: " + err.message);
     }
 }
+let allProducts = []; // Global variable to store products for search
+
 async function loadProducts() {
     try {
         const { data, error } = await supabaseClient.schema('retail').from('products').select('*').order('created_at', { ascending: false });
         if (error) throw new Error(error.message);
 
-        const listDiv = document.getElementById('product-list');
-        listDiv.innerHTML = data.length === 0 ? '<p>No products found.</p>' : '';
-        
-        data.forEach(product => {
-            const badgeColor = product.quantity <= 5 ? 'background:#fee2e2; color:#991b1b;' : 'background:#dcfce7; color:#166534;';
-            listDiv.innerHTML += `
-                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ccc; padding:10px 0;">
-                    <div>
-                        <p style="font-weight:bold; margin:0;">${product.name}</p>
-                        <p style="font-size:12px; color:#666; margin:0;">₦${product.selling_price}</p>
-                    </div>
-                    <div style="padding:5px 10px; border-radius:5px; font-weight:bold; ${badgeColor}">
-                        ${product.quantity} in stock
-                    </div>
-                </div>
-            `;
-        });
+        allProducts = data; // Save data for the search bar
+        renderProductList(allProducts);
     } catch (err) {
         alert("PRODUCTS ERROR: " + err.message);
     }
+}
+
+function renderProductList(products) {
+    const listDiv = document.getElementById('product-list');
+    listDiv.innerHTML = products.length === 0 ? '<p>No products found.</p>' : '';
+    
+    products.forEach(product => {
+        const badgeColor = product.quantity <= 5 ? 'background:#fee2e2; color:#991b1b;' : 'background:#dcfce7; color:#166534;';
+        listDiv.innerHTML += `
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ccc; padding:10px 0;">
+                <div>
+                    <p style="font-weight:bold; margin:0;">${product.name}</p>
+                    <p style="font-size:12px; color:#666; margin:0;">₦${product.selling_price}</p>
+                </div>
+                <div style="padding:5px 10px; border-radius:5px; font-weight:bold; ${badgeColor}">
+                    ${product.quantity} in stock
+                </div>
+            </div>
+        `;
+    });
+}
+
+function filterProducts() {
+    const query = document.getElementById('product-search').value.toLowerCase();
+    const filtered = allProducts.filter(p => p.name.toLowerCase().includes(query));
+    renderProductList(filtered);
 }
         async function addProduct() {
     const name = document.getElementById('prod-name').value;
