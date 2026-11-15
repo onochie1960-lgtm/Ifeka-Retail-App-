@@ -215,8 +215,11 @@
         // 3. Dashboard Logic
         async function loadDashboard() {
             try {
-                const today = new Date().toISOString().split('T')[0];
-                
+                // Get today's date in your local timezone (WAT)
+const now = new Date();
+const offset = now.getTimezoneOffset() * 60000;
+const localISOTime = (new Date(now - offset)).toISOString().slice(0, -1);
+const today = localISOTime.split('T')[0];
                 const { data: sales, error: e1 } = await supabaseClient.schema('retail').from('sales').select('total_price').gte('created_at', today);
                 if (e1) throw new Error(e1.message);
                 const totalSales = sales.reduce((sum, item) => sum + Number(item.total_price), 0);
