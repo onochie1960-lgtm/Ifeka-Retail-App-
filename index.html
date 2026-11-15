@@ -6,6 +6,7 @@
     <title>Ifeka Retail App</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
 
     <style>
         body { 
@@ -94,6 +95,10 @@
                 <input type="number" id="prod-price" placeholder="Selling Price (₦)">
                 <input type="number" id="prod-cost" placeholder="Cost Price (How much you bought it for)">
                 <input type="number" id="prod-qty" placeholder="Quantity in Stock">
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+    <input type="text" id="prod-barcode" placeholder="Barcode (or tap Scan)" style="margin-bottom: 0;">
+    <button onclick="startScanner('prod-barcode')" style="background: #3b82f6; color: white; padding: 0 15px; border: none; border-radius: 5px; font-weight: bold;">Scan</button>
+                </div>
                 <button class="btn" onclick="addProduct()">Save Product</button>
                 <p id="msg" class="text-green-600 mt-2 font-bold"></p>
             </div>
@@ -402,7 +407,8 @@ function filterProducts() {
         async function addProduct() {
     const name = document.getElementById('prod-name').value;
     const price = document.getElementById('prod-price').value;
-    const cost = document.getElementById('prod-cost').value; // NEW LINE
+    const cost = document.getElementById('prod-cost').value;
+    const barcode = document.getElementById('prod-barcode').value; // NEW
     const qty = document.getElementById('prod-qty').value;
     
     if (!name || !price || !cost || !qty) return alert("Please fill all fields");
@@ -410,7 +416,8 @@ function filterProducts() {
     const { error } = await supabaseClient.schema('retail').from('products').insert([{ 
         name: name, 
         selling_price: price, 
-        cost_price: cost, // NEW LINE
+        cost_price: cost, 
+        barcode: barcode, // NEW
         quantity: qty 
     }]);
     
@@ -419,7 +426,8 @@ function filterProducts() {
         document.getElementById('msg').innerText = "Product added!";
         document.getElementById('prod-name').value = '';
         document.getElementById('prod-price').value = '';
-        document.getElementById('prod-cost').value = ''; // NEW LINE
+        document.getElementById('prod-cost').value = '';
+        document.getElementById('prod-barcode').value = ''; // NEW
         document.getElementById('prod-qty').value = '';
         loadProducts();
         setTimeout(() => document.getElementById('msg').innerText = '', 3000);
@@ -746,6 +754,40 @@ async function downloadReport() {
         alert("Error downloading report: " + err.message);
     }
 }
+     // 12. Barcode Scanner Logic
+let html5QrcodeScanner;
+
+function startScanner(targetInputId) {
+    document.getElementById('scanner-modal').classList.remove('hidden');
+    document.getElementById('scanner-modal').style.display = 'flex';
+    
+    html5QrcodeScanner = new Html5Qrcode("reader");
+    html5QrcodeScanner.start(
+        { facingMode: "environment" }, // Use back camera
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        (decodedText) => {
+            // Success! Put the barcode in the input field
+            document.getElementById(targetInputId).value = decodedText;
+            stopScanner();
+        },
+        (errorMessage) => {
+            // Ignore scanning errors (happens every frame until it finds a barcode)
+        }
+    ).catch((err) => {
+        alert("Camera error: " + err);
+        stopScanner();
+    });
+}
+
+function stopScanner() {
+    if (html5QrcodeScanner) {
+        html5QrcodeScanner.stop().then(() => {
+            html5QrcodeScanner.clear();
+            document.getElementById('scanner-modal').classList.add('hidden');
+            document.getElementById('scanner-modal').style.display = 'none';
+        }).catch(err => console.log(err));
+    }
+}   
 </script>
 </body>
 </html>
