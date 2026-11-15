@@ -717,6 +717,35 @@ async function paySupplier(id, currentBalance) {
     if (error) alert("Error: " + error.message);
     else loadSuppliers();
 }
+        // 11. Download CSV Report
+async function downloadReport() {
+    try {
+        const { data: sales } = await supabaseClient.schema('retail').from('sales').select('*').order('created_at', { ascending: false });
+        const { data: expenses } = await supabaseClient.schema('retail').from('expenses').select('*').order('created_at', { ascending: false });
+
+        let csvContent = "RECENT SALES\nDate,Item,Quantity,Total Price,Profit\n";
+        sales.forEach(s => {
+            csvContent += `"${new Date(s.created_at).toLocaleString()}","${s.product_name}",${s.quantity_sold},${s.total_price},${s.profit || 0}\n`;
+        });
+
+        csvContent += "\nRECENT EXPENSES\nDate,Description,Category,Amount\n";
+        expenses.forEach(e => {
+            csvContent += `"${new Date(e.created_at).toLocaleString()}","${e.description}","${e.category}",${e.amount}\n`;
+        });
+
+        // Use Blob method (Works much better on phones)
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `Ifeka_Report_${new Date().toLocaleDateString()}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch (err) {
+        alert("Error downloading report: " + err.message);
+    }
+}
 </script>
 </body>
 </html>
