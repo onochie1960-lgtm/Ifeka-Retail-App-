@@ -264,29 +264,60 @@ document.getElementById('dash-profit').innerText = `₦${netProfit.toLocaleStrin
             }
         }
 
-        // 4. Products Logic
-        async function loadProducts() {
-            const { data, error } = await supabaseClient.schema('retail').from('products').select('*').order('created_at', { ascending: false });
-            if (error) return alert("Error: " + error.message);
+        async function loadDashboard() {
+    try {
+        // Get today's date in your local timezone
+        const now = new Date();
+        const offset = now.getTimezoneOffset() * 60000;
+        const localISOTime = (new Date(now - offset)).toISOString().slice(0, -1);
+        const today = localISOTime.split('T')[0];
+        
+        // 1. Get today's sales
+        const { data: sales, error: e1 } = await supabaseClient.schema('retail').from('sales').select('total_price').gte('created_at', today);
+        if (e1) throw new Error(e1.message);
+        const totalSales = sales ? sales.reduce((sum, item) => sum + Number(item.total_price || 0), 0) : 0;
+        document.getElementById('dash-sales').innerText = `₦${totalSales.toLocaleString()}`;
 
-            const listDiv = document.getElementById('product-list');
-            listDiv.innerHTML = data.length === 0 ? '<p>No products found.</p>' : '';
-            
-            data.forEach(product => {
-                const badgeColor = product.quantity <= 5 ? 'background:#fee2e2; color:#991b1b;' : 'background:#dcfce7; color:#166534;';
-                listDiv.innerHTML += `
-                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ccc; padding:10px 0;">
-                        <div>
-                            <p style="font-weight:bold; margin:0;">${product.name}</p>
-                            <p style="font-size:12px; color:#666; margin:0;">₦${product.selling_price}</p>
-                        </div>
-                        <div style="padding:5px 10px; border-radius:5px; font-weight:bold; ${badgeColor}">
-                            ${product.quantity} in stock
-                        </div>
+        // 2. Get today's expenses
+        const { data: expenses, error: e2 } = await supabaseClient.schema('retail').from('expenses').select('amount').gte('created_at', today);
+        if (e2) throw new Error(e2.message);
+        const totalExpenses = expenses ? expenses.reduce((sum, item) => sum + Number(item.amount || 0), 0) : 0;
+        document.getElementById('dash-expenses').innerText = `₦${totalExpenses.toLocaleString()}`;
+
+        // 3. Get today's profit
+        const { data: profitData, error: e3 } = await supabaseClient.schema('retail').from('sales').select('profit').gte('created_at', today);
+        if (e3) throw new Error(e3.message);
+        
+        // Calculate total profit from sales (Safely handles empty data)
+        const totalProfitFromSales = profitData ? profitData.reduce((sum, item) => sum + Number(item.profit || 0), 0) : 0;
+        
+        // Net Profit = Total Profit - Expenses
+        const netProfit = totalProfitFromSales - totalExpenses; 
+        document.getElementById('dash-profit').innerText = `₦${netProfit.toLocaleString()}`;
+
+        // 4. Get low stock items
+        const { data: lowStock, error: e4 } = await supabaseClient.schema('retail').from('products').select('name, quantity').lte('quantity', 5);
+        if (e4) throw new Error(e4.message);
+
+        const stockDiv = document.getElementById('dash-low-stock');
+        stockDiv.innerHTML = '';
+        
+        if (!lowStock || lowStock.length === 0) {
+            stockDiv.innerHTML = '<p class="text-gray-500">All products are well stocked!</p>';
+        } else {
+            lowStock.forEach(p => {
+                stockDiv.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; border-bottom:1px solid #ccc; padding:10px 0;">
+                        <span style="font-weight:bold;">${p.name}</span>
+                        <span style="color:red; font-weight:bold;">${p.quantity} left</span>
                     </div>
                 `;
             });
         }
+    } catch (err) {
+        alert("DASHBOARD ERROR: " + err.message);
+    }
+}
 
         async function addProduct() {
     const name = document.getElementById('prod-name').value;
