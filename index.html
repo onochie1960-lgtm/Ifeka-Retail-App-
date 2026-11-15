@@ -292,7 +292,7 @@ document.getElementById('dash-profit').innerText = `₦${netProfit.toLocaleStrin
         const totalProfitFromSales = profitData ? profitData.reduce((sum, item) => sum + Number(item.profit || 0), 0) : 0;
         
         // Net Profit = Total Profit - Expenses
-        const netProfit = totalProfitFromSales - totalExpenses; 
+        const netProfit = totalSales - totalExpenses;
         document.getElementById('dash-profit').innerText = `₦${netProfit.toLocaleString()}`;
 
         // 4. Get low stock items
