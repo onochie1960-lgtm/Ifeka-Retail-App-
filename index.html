@@ -58,27 +58,32 @@
     <div class="main-content">
         
         <!-- Dashboard Page -->
-        <div id="dashboard-page">
-            <h1 class="text-2xl font-bold mb-4">Dashboard</h1>
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <div class="card" style="margin-bottom: 0;">
-                    <h3 class="text-sm text-gray-500 font-bold">Today's Sales</h3>
-                    <p id="dash-sales" class="text-2xl font-bold text-green-600">₦0</p>
-                </div>
-                <div class="card" style="margin-bottom: 0;">
-                    <h3 class="text-sm text-gray-500 font-bold">Today's Expenses</h3>
-                    <p id="dash-expenses" class="text-2xl font-bold text-red-600">₦0</p>
-                </div>
-            </div>
-            <div class="card">
-                <h3 class="text-lg font-semibold mb-2">Needs Restocking (Below 5)</h3>
-                <div class="card" style="margin-bottom: 0; margin-top: 20px; background: #ecfdf5; border: 1px solid #10b981;">
-    <h3 class="text-sm text-green-800 font-bold">Today's Net Profit</h3>
-    <p id="dash-profit" class="text-3xl font-bold text-green-700">₦0</p>
-</div>
-                <div id="dash-low-stock" class="space-y-2">Loading...</div>
-            </div>
+<div id="dashboard-page">
+    <h1 class="text-2xl font-bold mb-4">Dashboard</h1>
+    
+    <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="card" style="margin-bottom: 0;">
+            <h3 class="text-sm text-gray-500 font-bold">Today's Sales</h3>
+            <p id="dash-sales" class="text-2xl font-bold text-green-600">₦0</p>
         </div>
+        <div class="card" style="margin-bottom: 0;">
+            <h3 class="text-sm text-gray-500 font-bold">Today's Expenses</h3>
+            <p id="dash-expenses" class="text-2xl font-bold text-red-600">₦0</p>
+        </div>
+    </div>
+
+    <!-- Net Profit Card -->
+    <div class="card" style="margin-bottom: 20px; background: #ecfdf5; border: 1px solid #10b981;">
+        <h3 class="text-sm text-green-800 font-bold">Today's Net Profit</h3>
+        <p id="dash-profit" class="text-3xl font-bold text-green-700">₦0</p>
+    </div>
+
+    <!-- Needs Restocking Card -->
+    <div class="card">
+        <h3 class="text-lg font-semibold mb-2">Needs Restocking (Below 5)</h3>
+        <div id="dash-low-stock" class="space-y-2">Loading...</div>
+    </div>
+</div>
 <div class="card" style="margin-bottom: 0; grid-column: span 2; background: #ecfdf5; border: 1px solid #10b981;">
     <h3 class="text-sm text-green-800 font-bold">Today's Net Profit</h3>
     <p id="dash-profit" class="text-3xl font-bold text-green-700">₦0</p>
