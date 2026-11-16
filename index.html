@@ -43,6 +43,9 @@
     <div class="main-content">
         <!-- Dashboard Page -->
         <div id="dashboard-page">
+        <div id="trial-banner" class="hidden" style="background: #fef08a; color: #854d0e; padding: 10px; border-radius: 5px; font-weight: bold; margin-bottom: 15px; text-align: center;">
+    Loading trial info...
+</div>
             <h1 class="text-2xl font-bold mb-4">Dashboard</h1>
             <div class="grid grid-cols-2 gap-4 mb-4">
                 <div class="card" style="margin-bottom: 0;">
@@ -712,26 +715,36 @@
         let settingsData = null;
 
         async function checkSubscription() {
-            
-            try {
-                const { data, error } = await supabaseClient.schema('retail').from('app_settings').select('*').single();
-                if (error) throw new Error(error.message);
-                settingsData = data;
-               
-                const now = new Date();
-const trialEnd = new Date(data.trial_ends_at);
+    try {
+        const { data, error } = await supabaseClient.schema('retail').from('app_settings').select('*').single();
+        if (error) throw new Error(error.message);
+        settingsData = data;
+        
+        const now = new Date();
+        const trialEnd = new Date(data.trial_ends_at);
+        const daysLeft = Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24));
 
-if (data.is_subscribed === false && now > trialEnd) {
-                    
-                    document.getElementById('paywall-modal').classList.remove('hidden');
-                    document.getElementById('paywall-modal').style.display = 'flex';
-                } else {
-                    document.getElementById('paywall-modal').classList.add('hidden');
-                    document.getElementById('paywall-modal').style.display = 'none';
-                }
-            } catch (err) { alert("SUBSCRIPTION ERROR: " + err.message); }
+        if (data.is_subscribed === true) {
+            // Subscribed user - hide everything
+            document.getElementById('paywall-modal').classList.add('hidden');
+            document.getElementById('paywall-modal').style.display = 'none';
+            document.getElementById('trial-banner').classList.add('hidden');
+        } else if (daysLeft > 0) {
+            // On Trial - show countdown banner
+            document.getElementById('trial-banner').innerText = `⏳ Trial Active: ${daysLeft} days left`;
+            document.getElementById('trial-banner').classList.remove('hidden');
+            document.getElementById('paywall-modal').classList.add('hidden');
+            document.getElementById('paywall-modal').style.display = 'none';
+        } else {
+            // Trial ended - show paywall
+            document.getElementById('paywall-modal').classList.remove('hidden');
+            document.getElementById('paywall-modal').style.display = 'flex';
+            document.getElementById('trial-banner').classList.add('hidden');
         }
-
+    } catch (err) {
+        alert("SUBSCRIPTION ERROR: " + err.message);
+    }
+}
         function payWithPaystack() {
             let handler = PaystackPop.setup({
                 key: 'pk_test_40b75cbe14646f85beb08ee423a76ad3065bd89c', 
