@@ -25,12 +25,15 @@
 </head>
 <body>
     
+
 <!-- Login Screen -->
 <div id="login-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #064e3b; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
     <h1 style="font-size: 32px; font-weight: bold; margin-bottom: 10px;">Ifeka Retail</h1>
-    <p style="margin-bottom: 30px;">Enter your 4-digit PIN to continue</p>
+    <p style="margin-bottom: 20px;">Enter your Shop Name and PIN</p>
     
-    <input type="password" id="login-pin" maxlength="4" inputmode="numeric" placeholder="••••" style="font-size: 32px; text-align: center; letter-spacing: 10px; width: 200px; padding: 15px; border-radius: 10px; border: none; margin-bottom: 20px;">
+    <input type="text" id="login-shop-name" placeholder="Shop Name (e.g., Ifeka Retail)" style="width: 80%; max-width: 300px; padding: 15px; border-radius: 10px; border: none; margin-bottom: 10px; font-size: 16px; text-align: center;">
+    
+    <input type="password" id="login-pin" maxlength="4" inputmode="numeric" placeholder="4-Digit PIN" style="font-size: 24px; text-align: center; letter-spacing: 5px; width: 80%; max-width: 300px; padding: 15px; border-radius: 10px; border: none; margin-bottom: 20px;">
     
     <button onclick="loginWithPin()" style="background: #10b981; color: white; padding: 15px 40px; border: none; border-radius: 5px; font-size: 18px; font-weight: bold; cursor: pointer;">Login</button>
     <p id="login-error" style="color: #ef4444; margin-top: 15px; font-weight: bold;"></p>
@@ -322,7 +325,7 @@
         let allProducts = [];
         async function loadProducts() {
             try {
-                const { data, error } = await supabaseClient.schema('retail').from('products').select('*').order('created_at', { ascending: false });
+                const { data, error } = await supabaseClient.schema('retail').from('products').select('*').eq('shop_id', currentShopId).order('created_at', { ascending: false });
                 if (error) throw new Error(error.message);
                 allProducts = data;
                 renderProductList(allProducts);
@@ -357,28 +360,35 @@
         }
 
         async function addProduct() {
-            const name = document.getElementById('prod-name').value;
-            const price = document.getElementById('prod-price').value;
-            const cost = document.getElementById('prod-cost').value;
-            const barcode = document.getElementById('prod-barcode').value;
-            const qty = document.getElementById('prod-qty').value;
-            
-            if (!name || !price || !cost || !qty) return alert("Please fill all fields");
+    const name = document.getElementById('prod-name').value;
+    const price = document.getElementById('prod-price').value;
+    const cost = document.getElementById('prod-cost').value;
+    const barcode = document.getElementById('prod-barcode').value;
+    const qty = document.getElementById('prod-qty').value;
+    
+    if (!name || !price || !cost || !qty) return alert("Please fill all fields");
 
-            const { error } = await supabaseClient.schema('retail').from('products').insert([{ name: name, selling_price: price, cost_price: cost, barcode: barcode, quantity: qty }]);
-            
-            if (error) alert("Error: " + error.message);
-            else {
-                document.getElementById('msg').innerText = "Product added!";
-                document.getElementById('prod-name').value = '';
-                document.getElementById('prod-price').value = '';
-                document.getElementById('prod-cost').value = '';
-                document.getElementById('prod-barcode').value = '';
-                document.getElementById('prod-qty').value = '';
-                loadProducts();
-                setTimeout(() => document.getElementById('msg').innerText = '', 3000);
-            }
-        }
+    const { error } = await supabaseClient.schema('retail').from('products').insert([{ 
+        shop_id: currentShopId, // <--- NEW
+        name: name, 
+        selling_price: price, 
+        cost_price: cost, 
+        barcode: barcode, 
+        quantity: qty 
+    }]);
+    
+    if (error) alert("Error: " + error.message);
+    else {
+        document.getElementById('msg').innerText = "Product added!";
+        document.getElementById('prod-name').value = '';
+        document.getElementById('prod-price').value = '';
+        document.getElementById('prod-cost').value = '';
+        document.getElementById('prod-barcode').value = '';
+        document.getElementById('prod-qty').value = '';
+        loadProducts();
+        setTimeout(() => document.getElementById('msg').innerText = '', 3000);
+    }
+}
 
         // Cart Logic
         let currentCart = [];
@@ -465,9 +475,15 @@
                     const profit = (item.price - item.cost) * item.qty;
                     totalReceiptAmount += totalPrice;
 
-                    const { error: saleError } = await supabaseClient.schema('retail').from('sales').insert([{ transaction_id: txId, product_id: item.id, product_name: item.name, quantity_sold: item.qty, total_price: totalPrice, profit: profit }]);
-                    if (saleError) throw new Error(saleError.message);
-
+                    const { error: saleError } = await supabaseClient.schema('retail').from('sales').insert([{ 
+    shop_id: currentShopId, // <--- NEW
+    transaction_id: txId, 
+    product_id: item.id, 
+    product_name: item.name, 
+    quantity_sold: item.qty, 
+    total_price: totalPrice, 
+    profit: profit 
+}]);
                     const { data: pData } = await supabaseClient.schema('retail').from('products').select('quantity').eq('id', item.id).single();
                     const newStock = pData.quantity - item.qty;
                     
@@ -517,7 +533,12 @@
             const category = document.getElementById('exp-category').value;
             if (!amount || !description) return alert("Please fill all fields");
 
-            const { error } = await supabaseClient.schema('retail').from('expenses').insert([{ amount: parseFloat(amount), description: description, category: category }]);
+            const { error } = await supabaseClient.schema('retail').from('expenses').insert([{ 
+    shop_id: currentShopId, 
+    amount: parseFloat(amount), 
+    description: description, 
+    category: category 
+}]);
             if (error) alert("Error: " + error.message);
             else {
                 document.getElementById('exp-msg').innerText = "✅ Expense saved!";
@@ -528,55 +549,61 @@
         }
 
         // Customers
-        async function loadCustomers() {
-            const { data, error } = await supabaseClient.schema('retail').from('customers').select('*').order('balance', { ascending: false });
-            if (error) return alert("Error: " + error.message);
+        // Customers
+async function loadCustomers() {
+    const { data, error } = await supabaseClient.schema('retail').from('customers').select('*').eq('shop_id', currentShopId).order('balance', { ascending: false });
+    if (error) return alert("Error: " + error.message);
 
-            const listDiv = document.getElementById('credit-list');
-            listDiv.innerHTML = data.length === 0 ? '<p>No customers found.</p>' : '';
-            
-            data.forEach(cust => {
-                const balanceColor = cust.balance > 0 ? 'color:red;' : 'color:green;';
-                const cleanPhone = cust.phone.startsWith('0') ? '234' + cust.phone.slice(1) : cust.phone;
-                const whatsappLink = `https://wa.me/${cleanPhone}?text=Hello ${cust.name}, your balance is ₦${cust.balance}. Please pay soon.`;
-                
-                listDiv.innerHTML += `
-                    <div style="border-bottom:1px solid #ccc; padding:10px 0;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <div>
-                                <p style="font-weight:bold; margin:0;">${cust.name}</p>
-                                <p style="font-size:12px; color:#666; margin:0;">${cust.phone}</p>
-                            </div>
-                            <div style="text-align:right;">
-                                <p style="font-weight:bold; margin:0; ${balanceColor}">₦${cust.balance.toLocaleString()}</p>
-                            </div>
-                        </div>
-                        <div style="margin-top: 10px; display: flex; gap: 10px;">
-                            <button onclick="recordDebt('${cust.id}', ${cust.balance})" style="background:#dcfce7; color:#166534; padding:5px 10px; border-radius:5px; border:1px solid #166534;">Add Debt</button>
-                            <button onclick="recordPayment('${cust.id}', ${cust.balance})" style="background:#fee2e2; color:#991b1b; padding:5px 10px; border-radius:5px; border:1px solid #991b1b;">Pay</button>
-                            ${cust.balance > 0 ? `<a href="${whatsappLink}" target="_blank" style="background:#25D366; color:white; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:12px; font-weight:bold;">WhatsApp</a>` : ''}
-                        </div>
+    const listDiv = document.getElementById('credit-list');
+    listDiv.innerHTML = data.length === 0 ? '<p>No customers found.</p>' : '';
+    
+    data.forEach(cust => {
+        const balanceColor = cust.balance > 0 ? 'color:red;' : 'color:green;';
+        const cleanPhone = cust.phone.startsWith('0') ? '234' + cust.phone.slice(1) : cust.phone;
+        const whatsappLink = `https://wa.me/${cleanPhone}?text=Hello ${cust.name}, your balance is ₦${cust.balance}. Please pay soon.`;
+        
+        listDiv.innerHTML += `
+            <div style="border-bottom:1px solid #ccc; padding:10px 0;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <p style="font-weight:bold; margin:0;">${cust.name}</p>
+                        <p style="font-size:12px; color:#666; margin:0;">${cust.phone}</p>
                     </div>
-                `;
-            });
-        }
+                    <div style="text-align:right;">
+                        <p style="font-weight:bold; margin:0; ${balanceColor}">₦${cust.balance.toLocaleString()}</p>
+                    </div>
+                </div>
+                <div style="margin-top: 10px; display: flex; gap: 10px;">
+                    <button onclick="recordDebt('${cust.id}', ${cust.balance})" style="background:#dcfce7; color:#166534; padding:5px 10px; border-radius:5px; border:1px solid #166534;">Add Debt</button>
+                    <button onclick="recordPayment('${cust.id}', ${cust.balance})" style="background:#fee2e2; color:#991b1b; padding:5px 10px; border-radius:5px; border:1px solid #991b1b;">Pay</button>
+                    ${cust.balance > 0 ? `<a href="${whatsappLink}" target="_blank" style="background:#25D366; color:white; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:12px; font-weight:bold;">WhatsApp</a>` : ''}
+                </div>
+            </div>
+        `;
+    });
+}
 
         async function addCustomer() {
-            const name = document.getElementById('cust-name').value;
-            const phone = document.getElementById('cust-phone').value;
-            if (!name || !phone) return alert("Please fill all fields");
+    const name = document.getElementById('cust-name').value;
+    const phone = document.getElementById('cust-phone').value;
+    if (!name || !phone) return alert("Please fill all fields");
 
-            const { error } = await supabaseClient.schema('retail').from('customers').insert([{ name: name, phone: phone, balance: 0 }]);
-            if (error) alert("Error: " + error.message);
-            else {
-                document.getElementById('cust-msg').innerText = "Customer added!";
-                document.getElementById('cust-name').value = '';
-                document.getElementById('cust-phone').value = '';
-                await loadCustomers();
-                setTimeout(() => document.getElementById('cust-msg').innerText = '', 3000);
-            }
-        }
-
+    const { error } = await supabaseClient.schema('retail').from('customers').insert([{ 
+        shop_id: currentShopId, 
+        name: name, 
+        phone: phone, 
+        balance: 0 
+    }]);
+    
+    if (error) alert("Error: " + error.message);
+    else {
+        document.getElementById('cust-msg').innerText = "Customer added!";
+        document.getElementById('cust-name').value = '';
+        document.getElementById('cust-phone').value = '';
+        await loadCustomers();
+        setTimeout(() => document.getElementById('cust-msg').innerText = '', 3000);
+    }
+}
         async function recordDebt(id, currentBalance) {
             const amount = prompt("Enter amount to ADD to their debt (₦):");
             if (!amount || isNaN(amount)) return;
@@ -644,7 +671,12 @@
             const name = document.getElementById('supp-name').value;
             const phone = document.getElementById('supp-phone').value;
             if (!name) return alert("Please enter a supplier name");
-            const { error } = await supabaseClient.schema('retail').from('suppliers').insert([{ name: name, phone: phone, balance: 0 }]);
+            const { error } = await supabaseClient.schema('retail').from('suppliers').insert([{ 
+    shop_id: currentShopId, 
+    name: name, 
+    phone: phone, 
+    balance: 0 
+}]);
             if (error) alert("Error: " + error.message);
             else {
                 document.getElementById('supp-msg').innerText = "Supplier added!";
@@ -796,42 +828,74 @@
                 document.getElementById('paywall-modal').style.display = 'none';
             } catch (err) { alert("Error unlocking app: " + err.message); }
         }
-        // --- LOGIN LOGIC ---
-// CHANGE THESE PINS TO WHATEVER YOU WANT
+        
+// --- LOGIN LOGIC ---
+let currentShopId = null; // This holds the ID of the logged-in shop
+
 async function loginWithPin() {
+    const shopName = document.getElementById('login-shop-name').value;
     const pin = document.getElementById('login-pin').value;
     const errorMsg = document.getElementById('login-error');
-    const OWNER_PIN = "1234"; // Your Master PIN
 
-    if (pin === OWNER_PIN) {
-        // Owner Login
+    if (!shopName || !pin) {
+        errorMsg.innerText = "Please enter both Shop Name and PIN.";
+        return;
+    }
+
+    // 1. Check if it's the Owner
+    const { data: shopData, error } = await supabaseClient
+        .schema('retail')
+        .from('shops')
+        .select('*')
+        .eq('shop_name', shopName)
+        .eq('owner_pin', pin)
+        .single();
+
+    if (shopData) {
+        // Owner Login Success
+        currentShopId = shopData.id;
         document.getElementById('login-screen').style.display = 'none';
         loadDashboard();
         return;
     }
 
-    // Check if PIN belongs to a Cashier in the database
-    const { data, error } = await supabaseClient.schema('retail').from('staff').select('*').eq('pin', pin).single();
+    // 2. Check if it's a Cashier (Requires finding their shop first)
+    const { data: shopByName } = await supabaseClient
+        .schema('retail')
+        .from('shops')
+        .select('id')
+        .eq('shop_name', shopName)
+        .single();
 
-    if (data) {
-        // Cashier Login
-        document.getElementById('login-screen').style.display = 'none';
-        
-        // Hide all tabs except Sales
-        const navItems = document.querySelectorAll('.nav-item');
-        navItems.forEach((item, index) => {
-            if (index !== 2) item.style.display = 'none'; // Index 2 is Sales
-        });
+    if (shopByName) {
+        const { data: staffData } = await supabaseClient
+            .schema('retail')
+            .from('staff')
+            .select('*')
+            .eq('shop_id', shopByName.id)
+            .eq('pin', pin)
+            .single();
 
-        // Hide the Staff tab from cashiers permanently
-        document.querySelectorAll('.nav-item')[7].style.display = 'none';
+        if (staffData) {
+            // Cashier Login Success
+            currentShopId = shopByName.id;
+            document.getElementById('login-screen').style.display = 'none';
+            
+            // Hide all tabs except Sales
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach((item, index) => {
+                if (index !== 2) item.style.display = 'none';
+            });
 
-        const salesButton = document.querySelectorAll('.nav-item')[2];
-        showPage('sales', salesButton);
-    } else {
-        errorMsg.innerText = "❌ Incorrect PIN. Try again.";
-        document.getElementById('login-pin').value = '';
+            const salesButton = document.querySelectorAll('.nav-item')[2];
+            showPage('sales', salesButton);
+            return;
+        }
     }
+
+    // If we get here, login failed
+    errorMsg.innerText = "❌ Incorrect Shop Name or PIN.";
+    document.getElementById('login-pin').value = '';
 }
         // 14. Staff Logic
 async function loadStaff() {
