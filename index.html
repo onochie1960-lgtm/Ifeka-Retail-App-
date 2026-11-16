@@ -21,44 +21,35 @@
         .btn:active { background-color: #059669; }
         input, select { padding: 8px; border: 1px solid #ccc; border-radius: 5px; width: 100%; margin-bottom: 10px; box-sizing: border-box; font-size: 16px; }
         .hidden { display: none; }
+        
+        /* Fix for login text visibility */
+        #login-shop-name, #login-pin {
+            color: #000000 !important; 
+            background-color: #ffffff !important;
+        }
     </style>
 </head>
 <body>
     
-
-<!-- Login Screen -->
-<div id="login-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #064e3b; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
-    <h1 style="font-size: 32px; font-weight: bold; margin-bottom: 10px;">Ifeka Retail</h1>
-    <p style="margin-bottom: 20px;">Enter your Shop Name and PIN</p>
-    
-    <input type="text" id="login-shop-name" placeholder="Shop Name (e.g., Ifeka Retail)" style="width: 80%; max-width: 300px; padding: 15px; border-radius: 10px; border: none; margin-bottom: 10px; font-size: 16px; text-align: center;">
-    
-    <input type="password" id="login-pin" maxlength="4" inputmode="numeric" placeholder="4-Digit PIN" style="font-size: 24px; text-align: center; letter-spacing: 5px; width: 80%; max-width: 300px; padding: 15px; border-radius: 10px; border: none; margin-bottom: 20px;">
-    
-    <button onclick="loginWithPin()" style="background: #10b981; color: white; padding: 15px 40px; border: none; border-radius: 5px; font-size: 18px; font-weight: bold; cursor: pointer;">Login</button>
-    <p id="login-error" style="color: #ef4444; margin-top: 15px; font-weight: bold;"></p>
-</div>
-    <!-- Paywall Modal -->
-    <div id="paywall-modal" class="hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f3f4f6; z-index: 99999; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;">
-        <h1 style="font-size: 28px; font-weight: bold; color: #064e3b; margin-bottom: 10px;">Ifeka Retail</h1>
-        <p style="color: #666; margin-bottom: 30px;">Manage your inventory, sales, and debts effortlessly.</p>
+    <!-- Login Screen -->
+    <div id="login-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #064e3b; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
+        <h1 style="font-size: 32px; font-weight: bold; margin-bottom: 10px;">Ifeka Retail</h1>
+        <p style="margin-bottom: 20px;">Enter your Shop Name and PIN</p>
         
-        <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px; width: 100%;">
-            <h2 style="font-size: 20px; font-weight: bold; margin-bottom: 15px;">Unlock Full Access</h2>
-            <p style="margin-bottom: 20px; font-size: 14px; color: #666;">Your 7-day free trial has ended. Subscribe now to continue managing your shop.</p>
-            
-            <h3 style="font-size: 32px; font-weight: bold; color: #10b981; margin-bottom: 20px;">₦2,000<span style="font-size: 14px; color: #666;">/month</span></h3>
-            
-            <button onclick="payWithPaystack()" style="width: 100%; background: #10b981; color: white; padding: 15px; border: none; border-radius: 5px; font-weight: bold; font-size: 16px; cursor: pointer;">Subscribe with Paystack</button>
-        </div>
+        <input type="text" id="login-shop-name" placeholder="Shop Name (e.g., Ifeka Retail)" style="width: 80%; max-width: 300px; padding: 15px; border-radius: 10px; border: none; margin-bottom: 10px; font-size: 16px; text-align: center;">
+        
+        <input type="password" id="login-pin" maxlength="4" inputmode="numeric" placeholder="4-Digit PIN" style="font-size: 24px; text-align: center; letter-spacing: 5px; width: 80%; max-width: 300px; padding: 15px; border-radius: 10px; border: none; margin-bottom: 20px;">
+        
+        <button onclick="loginWithPin()" style="background: #10b981; color: white; padding: 15px 40px; border: none; border-radius: 5px; font-size: 18px; font-weight: bold; cursor: pointer;">Login</button>
+        <p id="login-error" style="color: #ef4444; margin-top: 15px; font-weight: bold;"></p>
     </div>
 
     <div class="main-content">
         <!-- Dashboard Page -->
         <div id="dashboard-page">
-        <div id="trial-banner" class="hidden" style="background: #fef08a; color: #854d0e; padding: 10px; border-radius: 5px; font-weight: bold; margin-bottom: 15px; text-align: center;">
-    Loading trial info...
-</div>
+            <div id="trial-banner" class="hidden" style="background: #fef08a; color: #854d0e; padding: 10px; border-radius: 5px; font-weight: bold; margin-bottom: 15px; text-align: center;">
+                Loading trial info...
+            </div>
             <h1 class="text-2xl font-bold mb-4">Dashboard</h1>
             <div class="grid grid-cols-2 gap-4 mb-4">
                 <div class="card" style="margin-bottom: 0;">
@@ -202,21 +193,22 @@
                 <div id="supplier-list" class="space-y-2">Loading...</div>
             </div>
         </div>
+
         <!-- Staff Page (Owner Only) -->
-<div id="staff-page" class="hidden">
-    <h1 class="text-2xl font-bold mb-4">Manage Staff</h1>
-    <div class="card">
-        <h3 class="text-lg font-semibold mb-2">Add New Cashier</h3>
-        <input type="text" id="staff-name" placeholder="Cashier Name (e.g., Emeka)">
-        <input type="number" id="staff-pin" placeholder="4-Digit PIN (e.g., 5678)" maxlength="4">
-        <button class="btn mt-2" onclick="addStaff()">Save Staff</button>
-        <p id="staff-msg" class="text-green-600 mt-2 font-bold"></p>
-    </div>
-    <div class="card">
-        <h3 class="text-lg font-semibold mb-2">Current Staff</h3>
-        <div id="staff-list" class="space-y-2">Loading...</div>
-    </div>
-</div>
+        <div id="staff-page" class="hidden">
+            <h1 class="text-2xl font-bold mb-4">Manage Staff</h1>
+            <div class="card">
+                <h3 class="text-lg font-semibold mb-2">Add New Cashier</h3>
+                <input type="text" id="staff-name" placeholder="Cashier Name (e.g., Emeka)">
+                <input type="number" id="staff-pin" placeholder="4-Digit PIN (e.g., 5678)" maxlength="4">
+                <button class="btn mt-2" onclick="addStaff()">Save Staff</button>
+                <p id="staff-msg" class="text-green-600 mt-2 font-bold"></p>
+            </div>
+            <div class="card">
+                <h3 class="text-lg font-semibold mb-2">Current Staff</h3>
+                <div id="staff-list" class="space-y-2">Loading...</div>
+            </div>
+        </div>
     </div> <!-- End of Main Content -->
 
     <!-- Mobile Bottom Navigation -->
@@ -258,9 +250,11 @@
 
     <script>
         // 1. Setup Supabase (FIXED URL TYPO)
-        const SUPABASE_URL = 'https://ywpavqsencpilxisltsm.supabase.co';
+        const SUPABASE_URL = 'https://ywpavqscnepilxislstm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3cGF2cXNlbmNwaWx4aXNsdHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxMzU1OTAsImV4cCI6MjEwMjcxMTU5MH0.7NblgPa1zhyVzmZzwLuf_qAMJDhFEdRcvDEaIDJk37E';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let currentShopId = null; // This holds the ID of the logged-in shop
 
         function showPage(pageId, element) {
             document.querySelectorAll('.main-content > div').forEach(div => div.classList.add('hidden'));
@@ -285,12 +279,12 @@
                 const localISOTime = (new Date(now - offset)).toISOString().slice(0, -1);
                 const today = localISOTime.split('T')[0];
                 
-                const { data: sales, error: e1 } = await supabaseClient.schema('retail').from('sales').select('total_price').gte('created_at', today);
+                const { data: sales, error: e1 } = await supabaseClient.schema('retail').from('sales').select('total_price').eq('shop_id', currentShopId).gte('created_at', today);
                 if (e1) throw new Error(e1.message);
                 const totalSales = sales ? sales.reduce((sum, item) => sum + Number(item.total_price || 0), 0) : 0;
                 document.getElementById('dash-sales').innerText = `₦${totalSales.toLocaleString()}`;
 
-                const { data: expenses, error: e2 } = await supabaseClient.schema('retail').from('expenses').select('amount').gte('created_at', today);
+                const { data: expenses, error: e2 } = await supabaseClient.schema('retail').from('expenses').select('amount').eq('shop_id', currentShopId).gte('created_at', today);
                 if (e2) throw new Error(e2.message);
                 const totalExpenses = expenses ? expenses.reduce((sum, item) => sum + Number(item.amount || 0), 0) : 0;
                 document.getElementById('dash-expenses').innerText = `₦${totalExpenses.toLocaleString()}`;
@@ -298,7 +292,63 @@
                 const netProfit = totalSales - totalExpenses;
                 document.getElementById('dash-profit').innerText = `₦${netProfit.toLocaleString()}`;
 
-                const { data: lowStock, error: e4 } = await supabaseClient.schema('retail').from('products').select('name, quantity').lte('quantity', 5);
+                const { data: lowStock, error: e4 } = await supabaseClient.schema('retail').from('products').select('name, quantity').eq('shop_id', currentShopId).lte('quantity', 5);
+                if (e4) throw new Error(e4.message);
+
+                const stockDiv = document.getElementById('dash-low-stock');
+                stockDiv.innerHTML = '';
+                
+                if (!lowStock || lowStock.length === 0) {
+                    stockDiv.innerHTML = '<p class="text-gray-500">All products are well stocked!</p>';
+                } else {
+                    lowStock.forEach(p => {
+                        stockDiv.innerHTML += `
+                            <div style="display:flex; justif
+
+                                    // 1. Setup Supabase
+        const SUPABASE_URL = 'https://ywpavqscnepilxislstm.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3cGF2cXNlbmNwaWx4aXNsdHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxMzU1OTAsImV4cCI6MjEwMjcxMTU5MH0.7NblgPa1zhyVzmZzwLuf_qAMJDhFEdRcvDEaIDJk37E';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let currentShopId = null;
+
+        function showPage(pageId, element) {
+            document.querySelectorAll('.main-content > div').forEach(div => div.classList.add('hidden'));
+            document.getElementById(pageId + '-page').classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            if(element) element.classList.add('active');
+
+            if(pageId === 'dashboard') loadDashboard();
+            if(pageId === 'products') loadProducts();
+            if(pageId === 'sales') loadProductDropdown(); 
+            if(pageId === 'expenses') loadExpenses(); 
+            if(pageId === 'credit') loadCustomers(); 
+            if(pageId === 'history') loadHistory();
+            if(pageId === 'suppliers') loadSuppliers();
+            if(pageId === 'staff') loadStaff();
+        }
+
+        async function loadDashboard() {
+            try {
+                const now = new Date();
+                const offset = now.getTimezoneOffset() * 60000;
+                const localISOTime = (new Date(now - offset)).toISOString().slice(0, -1);
+                const today = localISOTime.split('T')[0];
+                
+                const { data: sales, error: e1 } = await supabaseClient.schema('retail').from('sales').select('total_price').eq('shop_id', currentShopId).gte('created_at', today);
+                if (e1) throw new Error(e1.message);
+                const totalSales = sales ? sales.reduce((sum, item) => sum + Number(item.total_price || 0), 0) : 0;
+                document.getElementById('dash-sales').innerText = `₦${totalSales.toLocaleString()}`;
+
+                const { data: expenses, error: e2 } = await supabaseClient.schema('retail').from('expenses').select('amount').eq('shop_id', currentShopId).gte('created_at', today);
+                if (e2) throw new Error(e2.message);
+                const totalExpenses = expenses ? expenses.reduce((sum, item) => sum + Number(item.amount || 0), 0) : 0;
+                document.getElementById('dash-expenses').innerText = `₦${totalExpenses.toLocaleString()}`;
+
+                const netProfit = totalSales - totalExpenses;
+                document.getElementById('dash-profit').innerText = `₦${netProfit.toLocaleString()}`;
+
+                const { data: lowStock, error: e4 } = await supabaseClient.schema('retail').from('products').select('name, quantity').eq('shop_id', currentShopId).lte('quantity', 5);
                 if (e4) throw new Error(e4.message);
 
                 const stockDiv = document.getElementById('dash-low-stock');
@@ -321,7 +371,6 @@
             }
         }
 
-        // Products
         let allProducts = [];
         async function loadProducts() {
             try {
@@ -360,40 +409,39 @@
         }
 
         async function addProduct() {
-    const name = document.getElementById('prod-name').value;
-    const price = document.getElementById('prod-price').value;
-    const cost = document.getElementById('prod-cost').value;
-    const barcode = document.getElementById('prod-barcode').value;
-    const qty = document.getElementById('prod-qty').value;
-    
-    if (!name || !price || !cost || !qty) return alert("Please fill all fields");
+            const name = document.getElementById('prod-name').value;
+            const price = document.getElementById('prod-price').value;
+            const cost = document.getElementById('prod-cost').value;
+            const barcode = document.getElementById('prod-barcode').value;
+            const qty = document.getElementById('prod-qty').value;
+            
+            if (!name || !price || !cost || !qty) return alert("Please fill all fields");
 
-    const { error } = await supabaseClient.schema('retail').from('products').insert([{ 
-        shop_id: currentShopId, // <--- NEW
-        name: name, 
-        selling_price: price, 
-        cost_price: cost, 
-        barcode: barcode, 
-        quantity: qty 
-    }]);
-    
-    if (error) alert("Error: " + error.message);
-    else {
-        document.getElementById('msg').innerText = "Product added!";
-        document.getElementById('prod-name').value = '';
-        document.getElementById('prod-price').value = '';
-        document.getElementById('prod-cost').value = '';
-        document.getElementById('prod-barcode').value = '';
-        document.getElementById('prod-qty').value = '';
-        loadProducts();
-        setTimeout(() => document.getElementById('msg').innerText = '', 3000);
-    }
-}
+            const { error } = await supabaseClient.schema('retail').from('products').insert([{ 
+                shop_id: currentShopId, 
+                name: name, 
+                selling_price: price, 
+                cost_price: cost, 
+                barcode: barcode, 
+                quantity: qty 
+            }]);
+            
+            if (error) alert("Error: " + error.message);
+            else {
+                document.getElementById('msg').innerText = "Product added!";
+                document.getElementById('prod-name').value = '';
+                document.getElementById('prod-price').value = '';
+                document.getElementById('prod-cost').value = '';
+                document.getElementById('prod-barcode').value = '';
+                document.getElementById('prod-qty').value = '';
+                loadProducts();
+                setTimeout(() => document.getElementById('msg').innerText = '', 3000);
+            }
+        }
 
-        // Cart Logic
         let currentCart = [];
         async function loadProductDropdown() {
-            const { data, error } = await supabaseClient.schema('retail').from('products').select('*');
+            const { data, error } = await supabaseClient.schema('retail').from('products').select('*').eq('shop_id', currentShopId);
             if (error) return alert("Error: " + error.message);
 
             const dropdown = document.getElementById('sale-product');
@@ -476,14 +524,16 @@
                     totalReceiptAmount += totalPrice;
 
                     const { error: saleError } = await supabaseClient.schema('retail').from('sales').insert([{ 
-    shop_id: currentShopId, // <--- NEW
-    transaction_id: txId, 
-    product_id: item.id, 
-    product_name: item.name, 
-    quantity_sold: item.qty, 
-    total_price: totalPrice, 
-    profit: profit 
-}]);
+                        shop_id: currentShopId, 
+                        transaction_id: txId, 
+                        product_id: item.id, 
+                        product_name: item.name, 
+                        quantity_sold: item.qty, 
+                        total_price: totalPrice, 
+                        profit: profit 
+                    }]);
+                    if (saleError) throw new Error(saleError.message);
+
                     const { data: pData } = await supabaseClient.schema('retail').from('products').select('quantity').eq('id', item.id).single();
                     const newStock = pData.quantity - item.qty;
                     
@@ -525,7 +575,6 @@
             }
         }
 
-        // Expenses
         async function loadExpenses() { document.getElementById('exp-amount').value = ''; document.getElementById('exp-desc').value = ''; }
         async function addExpense() {
             const amount = document.getElementById('exp-amount').value;
@@ -534,11 +583,11 @@
             if (!amount || !description) return alert("Please fill all fields");
 
             const { error } = await supabaseClient.schema('retail').from('expenses').insert([{ 
-    shop_id: currentShopId, 
-    amount: parseFloat(amount), 
-    description: description, 
-    category: category 
-}]);
+                shop_id: currentShopId, 
+                amount: parseFloat(amount), 
+                description: description, 
+                category: category 
+            }]);
             if (error) alert("Error: " + error.message);
             else {
                 document.getElementById('exp-msg').innerText = "✅ Expense saved!";
@@ -548,62 +597,61 @@
             }
         }
 
-        // Customers
-        // Customers
-async function loadCustomers() {
-    const { data, error } = await supabaseClient.schema('retail').from('customers').select('*').eq('shop_id', currentShopId).order('balance', { ascending: false });
-    if (error) return alert("Error: " + error.message);
+        async function loadCustomers() {
+            const { data, error } = await supabaseClient.schema('retail').from('customers').select('*').eq('shop_id', currentShopId).order('balance', { ascending: false });
+            if (error) return alert("Error: " + error.message);
 
-    const listDiv = document.getElementById('credit-list');
-    listDiv.innerHTML = data.length === 0 ? '<p>No customers found.</p>' : '';
-    
-    data.forEach(cust => {
-        const balanceColor = cust.balance > 0 ? 'color:red;' : 'color:green;';
-        const cleanPhone = cust.phone.startsWith('0') ? '234' + cust.phone.slice(1) : cust.phone;
-        const whatsappLink = `https://wa.me/${cleanPhone}?text=Hello ${cust.name}, your balance is ₦${cust.balance}. Please pay soon.`;
-        
-        listDiv.innerHTML += `
-            <div style="border-bottom:1px solid #ccc; padding:10px 0;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <p style="font-weight:bold; margin:0;">${cust.name}</p>
-                        <p style="font-size:12px; color:#666; margin:0;">${cust.phone}</p>
+            const listDiv = document.getElementById('credit-list');
+            listDiv.innerHTML = data.length === 0 ? '<p>No customers found.</p>' : '';
+            
+            data.forEach(cust => {
+                const balanceColor = cust.balance > 0 ? 'color:red;' : 'color:green;';
+                const cleanPhone = cust.phone.startsWith('0') ? '234' + cust.phone.slice(1) : cust.phone;
+                const whatsappLink = `https://wa.me/${cleanPhone}?text=Hello ${cust.name}, your balance is ₦${cust.balance}. Please pay soon.`;
+                
+                listDiv.innerHTML += `
+                    <div style="border-bottom:1px solid #ccc; padding:10px 0;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <p style="font-weight:bold; margin:0;">${cust.name}</p>
+                                <p style="font-size:12px; color:#666; margin:0;">${cust.phone}</p>
+                            </div>
+                            <div style="text-align:right;">
+                                <p style="font-weight:bold; margin:0; ${balanceColor}">₦${cust.balance.toLocaleString()}</p>
+                            </div>
+                        </div>
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button onclick="recordDebt('${cust.id}', ${cust.balance})" style="background:#dcfce7; color:#166534; padding:5px 10px; border-radius:5px; border:1px solid #166534;">Add Debt</button>
+                            <button onclick="recordPayment('${cust.id}', ${cust.balance})" style="background:#fee2e2; color:#991b1b; padding:5px 10px; border-radius:5px; border:1px solid #991b1b;">Pay</button>
+                            ${cust.balance > 0 ? `<a href="${whatsappLink}" target="_blank" style="background:#25D366; color:white; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:12px; font-weight:bold;">WhatsApp</a>` : ''}
+                        </div>
                     </div>
-                    <div style="text-align:right;">
-                        <p style="font-weight:bold; margin:0; ${balanceColor}">₦${cust.balance.toLocaleString()}</p>
-                    </div>
-                </div>
-                <div style="margin-top: 10px; display: flex; gap: 10px;">
-                    <button onclick="recordDebt('${cust.id}', ${cust.balance})" style="background:#dcfce7; color:#166534; padding:5px 10px; border-radius:5px; border:1px solid #166534;">Add Debt</button>
-                    <button onclick="recordPayment('${cust.id}', ${cust.balance})" style="background:#fee2e2; color:#991b1b; padding:5px 10px; border-radius:5px; border:1px solid #991b1b;">Pay</button>
-                    ${cust.balance > 0 ? `<a href="${whatsappLink}" target="_blank" style="background:#25D366; color:white; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:12px; font-weight:bold;">WhatsApp</a>` : ''}
-                </div>
-            </div>
-        `;
-    });
-}
+                `;
+            });
+        }
 
         async function addCustomer() {
-    const name = document.getElementById('cust-name').value;
-    const phone = document.getElementById('cust-phone').value;
-    if (!name || !phone) return alert("Please fill all fields");
+            const name = document.getElementById('cust-name').value;
+            const phone = document.getElementById('cust-phone').value;
+            if (!name || !phone) return alert("Please fill all fields");
 
-    const { error } = await supabaseClient.schema('retail').from('customers').insert([{ 
-        shop_id: currentShopId, 
-        name: name, 
-        phone: phone, 
-        balance: 0 
-    }]);
-    
-    if (error) alert("Error: " + error.message);
-    else {
-        document.getElementById('cust-msg').innerText = "Customer added!";
-        document.getElementById('cust-name').value = '';
-        document.getElementById('cust-phone').value = '';
-        await loadCustomers();
-        setTimeout(() => document.getElementById('cust-msg').innerText = '', 3000);
-    }
-}
+            const { error } = await supabaseClient.schema('retail').from('customers').insert([{ 
+                shop_id: currentShopId, 
+                name: name, 
+                phone: phone, 
+                balance: 0 
+            }]);
+            
+            if (error) alert("Error: " + error.message);
+            else {
+                document.getElementById('cust-msg').innerText = "Customer added!";
+                document.getElementById('cust-name').value = '';
+                document.getElementById('cust-phone').value = '';
+                await loadCustomers();
+                setTimeout(() => document.getElementById('cust-msg').innerText = '', 3000);
+            }
+        }
+
         async function recordDebt(id, currentBalance) {
             const amount = prompt("Enter amount to ADD to their debt (₦):");
             if (!amount || isNaN(amount)) return;
@@ -622,16 +670,15 @@ async function loadCustomers() {
             else loadCustomers();
         }
 
-        // History & Suppliers
         async function loadHistory() {
-            const { data: sales } = await supabaseClient.schema('retail').from('sales').select('*').order('created_at', { ascending: false }).limit(20);
+            const { data: sales } = await supabaseClient.schema('retail').from('sales').select('*').eq('shop_id', currentShopId).order('created_at', { ascending: false }).limit(20);
             const salesDiv = document.getElementById('history-sales-list');
             salesDiv.innerHTML = !sales || sales.length === 0 ? '<p>No sales recorded yet.</p>' : '';
             if (sales) sales.forEach(sale => {
                 salesDiv.innerHTML += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:8px 0;"><div><p style="font-weight:bold; margin:0;">${sale.product_name} (x${sale.quantity_sold})</p><p style="font-size:10px; color:#666; margin:0;">${new Date(sale.created_at).toLocaleDateString()}</p></div><p style="font-weight:bold; color:green; margin:0;">₦${Number(sale.total_price).toLocaleString()}</p></div>`;
             });
 
-            const { data: expenses } = await supabaseClient.schema('retail').from('expenses').select('*').order('created_at', { ascending: false }).limit(20);
+            const { data: expenses } = await supabaseClient.schema('retail').from('expenses').select('*').eq('shop_id', currentShopId).order('created_at', { ascending: false }).limit(20);
             const expDiv = document.getElementById('history-expenses-list');
             expDiv.innerHTML = !expenses || expenses.length === 0 ? '<p>No expenses recorded yet.</p>' : '';
             if (expenses) expenses.forEach(exp => {
@@ -641,7 +688,7 @@ async function loadCustomers() {
 
         async function loadSuppliers() {
             try {
-                const { data, error } = await supabaseClient.schema('retail').from('suppliers').select('*').order('balance', { ascending: false });
+                const { data, error } = await supabaseClient.schema('retail').from('suppliers').select('*').eq('shop_id', currentShopId).order('balance', { ascending: false });
                 if (error) throw new Error(error.message);
                 const listDiv = document.getElementById('supplier-list');
                 listDiv.innerHTML = data.length === 0 ? '<p>No suppliers found.</p>' : '';
@@ -672,11 +719,11 @@ async function loadCustomers() {
             const phone = document.getElementById('supp-phone').value;
             if (!name) return alert("Please enter a supplier name");
             const { error } = await supabaseClient.schema('retail').from('suppliers').insert([{ 
-    shop_id: currentShopId, 
-    name: name, 
-    phone: phone, 
-    balance: 0 
-}]);
+                shop_id: currentShopId, 
+                name: name, 
+                phone: phone, 
+                balance: 0 
+            }]);
             if (error) alert("Error: " + error.message);
             else {
                 document.getElementById('supp-msg').innerText = "Supplier added!";
@@ -707,8 +754,8 @@ async function loadCustomers() {
 
         async function downloadReport() {
             try {
-                const { data: sales } = await supabaseClient.schema('retail').from('sales').select('*').order('created_at', { ascending: false });
-                const { data: expenses } = await supabaseClient.schema('retail').from('expenses').select('*').order('created_at', { ascending: false });
+                const { data: sales } = await supabaseClient.schema('retail').from('sales').select('*').eq('shop_id', currentShopId).order('created_at', { ascending: false });
+                const { data: expenses } = await supabaseClient.schema('retail').from('expenses').select('*').eq('shop_id', currentShopId).order('created_at', { ascending: false });
                 let csvContent = "RECENT SALES\nDate,Item,Quantity,Total Price,Profit\n";
                 sales.forEach(s => csvContent += `"${new Date(s.created_at).toLocaleString()}","${s.product_name}",${s.quantity_sold},${s.total_price},${s.profit || 0}\n`);
                 csvContent += "\nRECENT EXPENSES\nDate,Description,Category,Amount\n";
@@ -724,7 +771,6 @@ async function loadCustomers() {
             } catch (err) { alert("Error downloading report: " + err.message); }
         }
 
-        // Scanner
         let html5QrcodeScanner;
         function startScanner(targetInputId) {
             document.getElementById('scanner-modal').classList.remove('hidden');
@@ -754,7 +800,7 @@ async function loadCustomers() {
         async function handleSaleScan(barcode) {
             if (!barcode) return;
             try {
-                const { data: product, error } = await supabaseClient.schema('retail').from('products').select('*').eq('barcode', barcode).single();
+                const { data: product, error } = await supabaseClient.schema('retail').from('products').select('*').eq('barcode', barcode).eq('shop_id', currentShopId).single();
                 if (error || !product) { alert("❌ Product not found! Please add it in the Inventory tab first."); return; }
                 const existingItem = currentCart.find(item => item.id === product.id);
                 if (existingItem) { existingItem.qty += 1; } 
@@ -766,46 +812,39 @@ async function loadCustomers() {
             finally { document.getElementById('sale-scan-input').value = ''; }
         }
 
-        // Paystack Subscription
         window.onload = function() { 
-    // We don't load the dashboard immediately, we check the PIN first.
-    checkSubscription(); 
-};
+            checkSubscription(); 
+        };
+
         let settingsData = null;
 
         async function checkSubscription() {
-    try {
-        const { data, error } = await supabaseClient.schema('retail').from('app_settings').select('*').single();
-        if (error) throw new Error(error.message);
-        settingsData = data;
-        
-        const now = new Date();
-        const expiryDate = new Date(data.trial_ends_at);
-        const daysLeft = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+            try {
+                const { data, error } = await supabaseClient.schema('retail').from('shops').select('*').eq('shop_name', document.getElementById('login-shop-name').value).single();
+                if (error) return; 
+                
+                settingsData = data;
+                const now = new Date();
+                const expiryDate = new Date(data.trial_ends_at);
+                const daysLeft = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
 
-        // 1. If the date has passed, lock the app NO MATTER WHAT
-        if (now > expiryDate) {
-            document.getElementById('paywall-modal').classList.remove('hidden');
-            document.getElementById('paywall-modal').style.display = 'flex';
-            document.getElementById('trial-banner').classList.add('hidden');
-        } 
-        // 2. If they are subscribed but not expired, let them in
-        else if (data.is_subscribed === true) {
-            document.getElementById('paywall-modal').classList.add('hidden');
-            document.getElementById('paywall-modal').style.display = 'none';
-            document.getElementById('trial-banner').classList.add('hidden');
-        } 
-        // 3. If they are on trial, show the banner
-        else {
-            document.getElementById('trial-banner').innerText = `⏳ Trial Active: ${daysLeft} days left`;
-            document.getElementById('trial-banner').classList.remove('hidden');
-            document.getElementById('paywall-modal').classList.add('hidden');
-            document.getElementById('paywall-modal').style.display = 'none';
+                if (now > expiryDate) {
+                    document.getElementById('paywall-modal').classList.remove('hidden');
+                    document.getElementById('paywall-modal').style.display = 'flex';
+                    document.getElementById('trial-banner').classList.add('hidden');
+                } else if (data.is_subscribed === true) {
+                    document.getElementById('paywall-modal').classList.add('hidden');
+                    document.getElementById('paywall-modal').style.display = 'none';
+                    document.getElementById('trial-banner').classList.add('hidden');
+                } else {
+                    document.getElementById('trial-banner').innerText = `⏳ Trial Active: ${daysLeft} days left`;
+                    document.getElementById('trial-banner').classList.remove('hidden');
+                    document.getElementById('paywall-modal').classList.add('hidden');
+                    document.getElementById('paywall-modal').style.display = 'none';
+                }
+            } catch (err) {}
         }
-    } catch (err) {
-        alert("SUBSCRIPTION ERROR: " + err.message);
-    }
-}
+
         function payWithPaystack() {
             let handler = PaystackPop.setup({
                 key: 'pk_test_40b75cbe14646f85beb08ee423a76ad3065bd89c', 
@@ -821,7 +860,7 @@ async function loadCustomers() {
 
         async function unlockApp(paystackRef) {
             try {
-                const { error } = await supabaseClient.schema('retail').from('app_settings').update({ is_subscribed: true }).eq('id', settingsData.id);
+                const { error } = await supabaseClient.schema('retail').from('shops').update({ is_subscribed: true }).eq('id', currentShopId);
                 if (error) throw new Error(error.message);
                 alert("Payment successful! Welcome to Ifeka Retail Pro. Ref: " + paystackRef);
                 document.getElementById('paywall-modal').classList.add('hidden');
@@ -829,123 +868,115 @@ async function loadCustomers() {
             } catch (err) { alert("Error unlocking app: " + err.message); }
         }
         
-// --- LOGIN LOGIC ---
-let currentShopId = null; // This holds the ID of the logged-in shop
+        async function loginWithPin() {
+            const shopName = document.getElementById('login-shop-name').value;
+            const pin = document.getElementById('login-pin').value;
+            const errorMsg = document.getElementById('login-error');
 
-async function loginWithPin() {
-    const shopName = document.getElementById('login-shop-name').value;
-    const pin = document.getElementById('login-pin').value;
-    const errorMsg = document.getElementById('login-error');
+            if (!shopName || !pin) {
+                errorMsg.innerText = "Please enter both Shop Name and PIN.";
+                return;
+            }
 
-    if (!shopName || !pin) {
-        errorMsg.innerText = "Please enter both Shop Name and PIN.";
-        return;
-    }
+            const { data: shopData, error } = await supabaseClient
+                .schema('retail')
+                .from('shops')
+                .select('*')
+                .eq('shop_name', shopName)
+                .eq('owner_pin', pin)
+                .single();
 
-    // 1. Check if it's the Owner
-    const { data: shopData, error } = await supabaseClient
-        .schema('retail')
-        .from('shops')
-        .select('*')
-        .eq('shop_name', shopName)
-        .eq('owner_pin', pin)
-        .single();
+            if (shopData) {
+                currentShopId = shopData.id;
+                document.getElementById('login-screen').style.display = 'none';
+                checkSubscription();
+                loadDashboard();
+                return;
+            }
 
-    if (shopData) {
-        // Owner Login Success
-        currentShopId = shopData.id;
-        document.getElementById('login-screen').style.display = 'none';
-        loadDashboard();
-        return;
-    }
+            const { data: shopByName } = await supabaseClient
+                .schema('retail')
+                .from('shops')
+                .select('id')
+                .eq('shop_name', shopName)
+                .single();
 
-    // 2. Check if it's a Cashier (Requires finding their shop first)
-    const { data: shopByName } = await supabaseClient
-        .schema('retail')
-        .from('shops')
-        .select('id')
-        .eq('shop_name', shopName)
-        .single();
+            if (shopByName) {
+                const { data: staffData } = await supabaseClient
+                    .schema('retail')
+                    .from('staff')
+                    .select('*')
+                    .eq('shop_id', shopByName.id)
+                    .eq('pin', pin)
+                    .single();
 
-    if (shopByName) {
-        const { data: staffData } = await supabaseClient
-            .schema('retail')
-            .from('staff')
-            .select('*')
-            .eq('shop_id', shopByName.id)
-            .eq('pin', pin)
-            .single();
+                if (staffData) {
+                    currentShopId = shopByName.id;
+                    document.getElementById('login-screen').style.display = 'none';
+                    
+                    const navItems = document.querySelectorAll('.nav-item');
+                    navItems.forEach((item, index) => {
+                        if (index !== 2) item.style.display = 'none';
+                    });
 
-        if (staffData) {
-            // Cashier Login Success
-            currentShopId = shopByName.id;
-            document.getElementById('login-screen').style.display = 'none';
-            
-            // Hide all tabs except Sales
-            const navItems = document.querySelectorAll('.nav-item');
-            navItems.forEach((item, index) => {
-                if (index !== 2) item.style.display = 'none';
-            });
+                    const salesButton = document.querySelectorAll('.nav-item')[2];
+                    showPage('sales', salesButton);
+                    return;
+                }
+            }
 
-            const salesButton = document.querySelectorAll('.nav-item')[2];
-            showPage('sales', salesButton);
-            return;
+            errorMsg.innerText = "❌ Incorrect Shop Name or PIN.";
+            document.getElementById('login-pin').value = '';
         }
-    }
 
-    // If we get here, login failed
-    errorMsg.innerText = "❌ Incorrect Shop Name or PIN.";
-    document.getElementById('login-pin').value = '';
-}
-        // 14. Staff Logic
-async function loadStaff() {
-    const { data, error } = await supabaseClient.schema('retail').from('staff').select('*').order('created_at', { ascending: false });
-    if (error) return alert("Error: " + error.message);
+        async function loadStaff() {
+            const { data, error } = await supabaseClient.schema('retail').from('staff').select('*').eq('shop_id', currentShopId).order('created_at', { ascending: false });
+            if (error) return alert("Error: " + error.message);
 
-    const listDiv = document.getElementById('staff-list');
-    listDiv.innerHTML = data.length === 0 ? '<p>No staff added yet.</p>' : '';
-    
-    data.forEach(s => {
-        listDiv.innerHTML += `
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ccc; padding:10px 0;">
-                <div>
-                    <p style="font-weight:bold; margin:0;">${s.name}</p>
-                    <p style="font-size:12px; color:#666; margin:0;">PIN: ${s.pin}</p>
-                </div>
-                <button onclick="deleteStaff('${s.id}')" style="background:#fee2e2; color:#991b1b; padding:5px 10px; border-radius:5px; border:1px solid #991b1b; font-size:12px;">Delete</button>
-            </div>
-        `;
-    });
-}
+            const listDiv = document.getElementById('staff-list');
+            listDiv.innerHTML = data.length === 0 ? '<p>No staff added yet.</p>' : '';
+            
+            data.forEach(s => {
+                listDiv.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ccc; padding:10px 0;">
+                        <div>
+                            <p style="font-weight:bold; margin:0;">${s.name}</p>
+                            <p style="font-size:12px; color:#666; margin:0;">PIN: ${s.pin}</p>
+                        </div>
+                        <button onclick="deleteStaff('${s.id}')" style="background:#fee2e2; color:#991b1b; padding:5px 10px; border-radius:5px; border:1px solid #991b1b; font-size:12px;">Delete</button>
+                    </div>
+                `;
+            });
+        }
 
-async function addStaff() {
-    const name = document.getElementById('staff-name').value;
-    const pin = document.getElementById('staff-pin').value;
-    
-    if (!name || !pin || pin.length !== 4) return alert("Please enter a name and a 4-digit PIN");
+        async function addStaff() {
+            const name = document.getElementById('staff-name').value;
+            const pin = document.getElementById('staff-pin').value;
+            
+            if (!name || !pin || pin.length !== 4) return alert("Please enter a name and a 4-digit PIN");
 
-    const { error } = await supabaseClient.schema('retail').from('staff').insert([{ name: name, pin: pin }]);
-    if (error) alert("Error: " + error.message);
-    else {
-        document.getElementById('staff-msg').innerText = "Cashier added successfully!";
-        document.getElementById('staff-name').value = '';
-        document.getElementById('staff-pin').value = '';
-        await loadStaff();
-        setTimeout(() => document.getElementById('staff-msg').innerText = '', 3000);
-    }
-}
+            const { error } = await supabaseClient.schema('retail').from('staff').insert([{ 
+                shop_id: currentShopId, 
+                name: name, 
+                pin: pin 
+            }]);
+            
+            if (error) alert("Error: " + error.message);
+            else {
+                document.getElementById('staff-msg').innerText = "Cashier added successfully!";
+                document.getElementById('staff-name').value = '';
+                document.getElementById('staff-pin').value = '';
+                await loadStaff();
+                setTimeout(() => document.getElementById('staff-msg').innerText = '', 3000);
+            }
+        }
 
-async function deleteStaff(id) {
-    if(!confirm("Are you sure you want to delete this staff member?")) return;
-    const { error } = await supabaseClient.schema('retail').from('staff').delete().eq('id', id);
-    if (error) alert("Error: " + error.message);
-    else loadStaff();
-}
-        /* Make login inputs visible */
-#login-shop-name, #login-pin {
-    color: #000000 !important; 
-    background-color: #ffffff !important;
-}
+        async function deleteStaff(id) {
+            if(!confirm("Are you sure you want to delete this staff member?")) return;
+            const { error } = await supabaseClient.schema('retail').from('staff').delete().eq('id', id);
+            if (error) alert("Error: " + error.message);
+            else loadStaff();
+        }
     </script>
 </body>
 </html>
