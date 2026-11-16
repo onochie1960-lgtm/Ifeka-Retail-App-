@@ -872,6 +872,7 @@
             const shopName = document.getElementById('login-shop-name').value;
             const pin = document.getElementById('login-pin').value;
             const errorMsg = document.getElementById('login-error');
+            alert("Trying: " + shopName + " / PIN: " + pin);
 
             if (!shopName || !pin) {
                 errorMsg.innerText = "Please enter both Shop Name and PIN.";
