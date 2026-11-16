@@ -712,14 +712,17 @@
         let settingsData = null;
 
         async function checkSubscription() {
-            alert("1. Starting subscription check...");
+            
             try {
                 const { data, error } = await supabaseClient.schema('retail').from('app_settings').select('*').single();
                 if (error) throw new Error(error.message);
                 settingsData = data;
-                alert("2. Database connected. Status: " + data.is_subscribed);
-                if (data.is_subscribed === false) {
-                    alert("3. Opening Paywall!");
+               
+                const now = new Date();
+const trialEnd = new Date(data.trial_ends_at);
+
+if (data.is_subscribed === false && now > trialEnd) {
+                    
                     document.getElementById('paywall-modal').classList.remove('hidden');
                     document.getElementById('paywall-modal').style.display = 'flex';
                 } else {
