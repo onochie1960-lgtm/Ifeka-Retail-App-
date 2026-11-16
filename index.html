@@ -7,45 +7,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://js.paystack.co/v1/inline.js"></script>
 
     <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: #f3f4f6; 
-            margin: 0; 
-            padding-bottom: 80px; 
-        }
-
-        /* Mobile Bottom Navigation */
-        .bottom-nav { 
-            position: fixed; 
-            bottom: 0; 
-            left: 0; 
-            width: 100%; 
-            background-color: #064e3b; 
-            display: flex; 
-            flex-direction: row; 
-            justify-content: space-around; 
-            padding: 10px 0; 
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1); 
-            z-index: 50;
-            box-sizing: border-box; 
-        }
-        .nav-item { 
-            color: white; 
-            text-align: center; 
-            font-size: 8px; 
-            cursor: pointer; 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center;
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; margin: 0; padding-bottom: 80px; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background-color: #064e3b; display: flex; flex-direction: row; justify-content: space-around; padding: 10px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 50; box-sizing: border-box; }
+        .nav-item { color: white; text-align: center; font-size: 8px; cursor: pointer; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .nav-item.active { color: #34d399; font-weight: bold; }
         .nav-icon { font-size: 18px; margin-bottom: 2px; }
-
-        /* Main Content */
         .main-content { padding: 20px; max-width: 600px; margin: 0 auto; width: 100%; box-sizing: border-box; }
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
         .btn { background-color: #10b981; color: white; padding: 12px; border-radius: 5px; cursor: pointer; border: none; width: 100%; font-size: 16px; font-weight: bold; margin-top: 10px;}
@@ -56,35 +25,44 @@
 </head>
 <body>
 
-    <div class="main-content">
+    <!-- Paywall Modal -->
+    <div id="paywall-modal" class="hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f3f4f6; z-index: 99999; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;">
+        <h1 style="font-size: 28px; font-weight: bold; color: #064e3b; margin-bottom: 10px;">Ifeka Retail</h1>
+        <p style="color: #666; margin-bottom: 30px;">Manage your inventory, sales, and debts effortlessly.</p>
         
+        <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px; width: 100%;">
+            <h2 style="font-size: 20px; font-weight: bold; margin-bottom: 15px;">Unlock Full Access</h2>
+            <p style="margin-bottom: 20px; font-size: 14px; color: #666;">Your 7-day free trial has ended. Subscribe now to continue managing your shop.</p>
+            
+            <h3 style="font-size: 32px; font-weight: bold; color: #10b981; margin-bottom: 20px;">₦2,000<span style="font-size: 14px; color: #666;">/month</span></h3>
+            
+            <button onclick="payWithPaystack()" style="width: 100%; background: #10b981; color: white; padding: 15px; border: none; border-radius: 5px; font-weight: bold; font-size: 16px; cursor: pointer;">Subscribe with Paystack</button>
+        </div>
+    </div>
+
+    <div class="main-content">
         <!-- Dashboard Page -->
-<div id="dashboard-page">
-    <h1 class="text-2xl font-bold mb-4">Dashboard</h1>
-    
-    <div class="grid grid-cols-2 gap-4 mb-4">
-        <div class="card" style="margin-bottom: 0;">
-            <h3 class="text-sm text-gray-500 font-bold">Today's Sales</h3>
-            <p id="dash-sales" class="text-2xl font-bold text-green-600">₦0</p>
+        <div id="dashboard-page">
+            <h1 class="text-2xl font-bold mb-4">Dashboard</h1>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="card" style="margin-bottom: 0;">
+                    <h3 class="text-sm text-gray-500 font-bold">Today's Sales</h3>
+                    <p id="dash-sales" class="text-2xl font-bold text-green-600">₦0</p>
+                </div>
+                <div class="card" style="margin-bottom: 0;">
+                    <h3 class="text-sm text-gray-500 font-bold">Today's Expenses</h3>
+                    <p id="dash-expenses" class="text-2xl font-bold text-red-600">₦0</p>
+                </div>
+            </div>
+            <div class="card" style="margin-bottom: 20px; background: #ecfdf5; border: 1px solid #10b981;">
+                <h3 class="text-sm text-green-800 font-bold">Today's Net Profit</h3>
+                <p id="dash-profit" class="text-3xl font-bold text-green-700">₦0</p>
+            </div>
+            <div class="card">
+                <h3 class="text-lg font-semibold mb-2">Needs Restocking (Below 5)</h3>
+                <div id="dash-low-stock" class="space-y-2">Loading...</div>
+            </div>
         </div>
-        <div class="card" style="margin-bottom: 0;">
-            <h3 class="text-sm text-gray-500 font-bold">Today's Expenses</h3>
-            <p id="dash-expenses" class="text-2xl font-bold text-red-600">₦0</p>
-        </div>
-    </div>
-
-    <!-- Net Profit Card -->
-    <div class="card" style="margin-bottom: 20px; background: #ecfdf5; border: 1px solid #10b981;">
-        <h3 class="text-sm text-green-800 font-bold">Today's Net Profit</h3>
-        <p id="dash-profit" class="text-3xl font-bold text-green-700">₦0</p>
-    </div>
-
-    <!-- Needs Restocking Card -->
-    <div class="card">
-        <h3 class="text-lg font-semibold mb-2">Needs Restocking (Below 5)</h3>
-        <div id="dash-low-stock" class="space-y-2">Loading...</div>
-    </div>
-</div>
 
         <!-- Products Page -->
         <div id="products-page" class="hidden">
@@ -96,8 +74,8 @@
                 <input type="number" id="prod-cost" placeholder="Cost Price (How much you bought it for)">
                 <input type="number" id="prod-qty" placeholder="Quantity in Stock">
                 <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-    <input type="text" id="prod-barcode" placeholder="Barcode (or tap Scan)" style="margin-bottom: 0;">
-    <button onclick="startScanner('prod-barcode')" style="background: #3b82f6; color: white; padding: 0 15px; border: none; border-radius: 5px; font-weight: bold;">Scan</button>
+                    <input type="text" id="prod-barcode" placeholder="Barcode (or tap Scan)" style="margin-bottom: 0;">
+                    <button onclick="startScanner('prod-barcode')" style="background: #3b82f6; color: white; padding: 0 15px; border: none; border-radius: 5px; font-weight: bold;">Scan</button>
                 </div>
                 <button class="btn" onclick="addProduct()">Save Product</button>
                 <p id="msg" class="text-green-600 mt-2 font-bold"></p>
@@ -110,58 +88,36 @@
         </div>
 
         <!-- Sales Page -->
-<div id="sales-page" class="hidden">
-    <h1 class="text-2xl font-bold mb-4">Record a Sale (POS)</h1>
-    
-    <div class="card">
-        <h3 class="text-lg font-semibold mb-2">Add to Cart</h3>
-        <button class="btn" style="background: #3b82f6; margin-bottom: 15px;" onclick="startScanner('sale-scan-input')">📷 Scan Barcode</button>
-        <input type="hidden" id="sale-scan-input" onchange="handleSaleScan(this.value)">
-        
-        <label class="block mb-1">Or Select Product:</label>
-        <select id="sale-product" class="w-full p-3 mb-4 border rounded"></select>
-        
-        <label class="block mb-1">Quantity:</label>
-        <input type="number" id="sale-qty" placeholder="How many?" value="1">
-        
-        <button class="btn mt-2" style="background: #10b981;" onclick="addToCart()">➕ Add to Cart</button>
-        <p id="sale-msg" class="text-green-600 mt-2 font-bold"></p>
-    </div>
-
-    <!-- Cart Section -->
-    <div class="card" style="border: 2px solid #10b981;">
-        <h3 class="text-lg font-semibold mb-2">🛒 Current Cart</h3>
-        <div id="cart-items" class="space-y-2 mb-4">
-            <p class="text-gray-500">Cart is empty.</p>
-        </div>
-        <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; margin-bottom: 15px; border-top: 1px solid #ccc; padding-top: 10px;">
-            <span>Total:</span>
-            <span id="cart-total" style="color: #059669;">₦0</span>
-        </div>
-        <button class="btn" style="background: #059669; padding: 15px;" onclick="checkout()">✅ Checkout & Print Receipt</button>
-        <button onclick="clearCart()" style="width: 100%; margin-top: 10px; background: #ef4444; color: white; padding: 10px; border: none; border-radius: 5px; font-weight: bold;">Clear Cart</button>
-    </div>
-</div>
-<!-- Receipt Modal (Hidden by default) -->
-<div id="receipt-modal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; justify-content: center; align-items: center;">
-    <div id="receipt-content" style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center;">
-        <h2 style="font-weight: bold; font-size: 24px; margin-bottom: 5px;">Ifeka Retail</h2>
-        <p style="font-size: 12px; color: #666; margin-bottom: 20px;">Official Receipt</p>
-        
-        <div style="text-align: left; border-top: 1px dashed #ccc; border-bottom: 1px dashed #ccc; padding: 15px 0; margin-bottom: 20px;">
-            <p><strong>Item:</strong> <span id="receipt-item"></span></p>
-            <p><strong>Quantity:</strong> <span id="receipt-qty"></span></p>
-            <p><strong>Total Paid:</strong> <span id="receipt-total" style="font-weight: bold; color: #059669;"></span></p>
-            <p><strong>Date:</strong> <span id="receipt-date"></span></p>
+        <div id="sales-page" class="hidden">
+            <h1 class="text-2xl font-bold mb-4">Record a Sale (POS)</h1>
+            <div class="card">
+                <h3 class="text-lg font-semibold mb-2">Add to Cart</h3>
+                <button class="btn" style="background: #3b82f6; margin-bottom: 15px;" onclick="startScanner('sale-scan-input')">📷 Scan Barcode</button>
+                <input type="hidden" id="sale-scan-input" onchange="handleSaleScan(this.value)">
+                
+                <label class="block mb-1">Or Select Product:</label>
+                <select id="sale-product" class="w-full p-3 mb-4 border rounded"></select>
+                
+                <label class="block mb-1">Quantity:</label>
+                <input type="number" id="sale-qty" placeholder="How many?" value="1">
+                
+                <button class="btn mt-2" style="background: #10b981;" onclick="addToCart()">➕ Add to Cart</button>
+                <p id="sale-msg" class="text-green-600 mt-2 font-bold"></p>
+            </div>
+            <div class="card" style="border: 2px solid #10b981;">
+                <h3 class="text-lg font-semibold mb-2">🛒 Current Cart</h3>
+                <div id="cart-items" class="space-y-2 mb-4">
+                    <p class="text-gray-500">Cart is empty.</p>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; margin-bottom: 15px; border-top: 1px solid #ccc; padding-top: 10px;">
+                    <span>Total:</span>
+                    <span id="cart-total" style="color: #059669;">₦0</span>
+                </div>
+                <button class="btn" style="background: #059669; padding: 15px;" onclick="checkout()">✅ Checkout & Print Receipt</button>
+                <button onclick="clearCart()" style="width: 100%; margin-top: 10px; background: #ef4444; color: white; padding: 10px; border: none; border-radius: 5px; font-weight: bold;">Clear Cart</button>
+            </div>
         </div>
 
-        <div style="display: flex; gap: 10px;">
-            <button onclick="printReceipt()" style="flex: 1; background: #3b82f6; color: white; padding: 10px; border: none; border-radius: 5px; font-weight: bold;">Print</button>
-            <button onclick="shareReceiptWhatsApp()" style="flex: 1; background: #25D366; color: white; padding: 10px; border: none; border-radius: 5px; font-weight: bold;">WhatsApp</button>
-        </div>
-        <button onclick="closeReceipt()" style="margin-top: 15px; background: #ef4444; color: white; padding: 10px; border: none; border-radius: 5px; width: 100%; font-weight: bold;">Close</button>
-    </div>
-</div>
         <!-- Expenses Page -->
         <div id="expenses-page" class="hidden">
             <h1 class="text-2xl font-bold mb-4">Record an Expense</h1>
@@ -200,79 +156,83 @@
                 <div id="credit-list" class="space-y-2">Loading...</div>
             </div>
         </div>
-<!-- History Page -->
-<div id="history-page" class="hidden">
-    <h1 class="text-2xl font-bold mb-4">Sales & Expenses History</h1>
-    <button class="btn" style="background: #3b82f6; margin-bottom: 20px;" onclick="downloadReport()">📥 Download Report (CSV)</button>
-    <div class="card">
-        <h3 class="text-lg font-semibold mb-2">Recent Sales</h3>
-        <div id="history-sales-list" class="space-y-2">Loading...</div>
-    </div>
-    <div class="card">
-        <h3 class="text-lg font-semibold mb-2">Recent Expenses</h3>
-        <div id="history-expenses-list" class="space-y-2">Loading...</div>
-    </div>
-</div> <!-- End of History Page -->
 
-<!-- Suppliers Page -->
-<div id="suppliers-page" class="hidden">
-    <h1 class="text-2xl font-bold mb-4">Suppliers & Restocking</h1>
-    <div class="card">
-        <h3 class="text-lg font-semibold mb-2">Add New Supplier</h3>
-        <input type="text" id="supp-name" placeholder="Supplier Name">
-        <input type="tel" id="supp-phone" placeholder="Phone Number">
-        <button class="btn mt-2" onclick="addSupplier()">Save Supplier</button>
-        <p id="supp-msg" class="text-green-600 mt-2 font-bold"></p>
-    </div>
-    <div class="card">
-        <h3 class="text-lg font-semibold mb-2">Suppliers You Owe</h3>
-        <div id="supplier-list" class="space-y-2">Loading...</div>
-    </div>
-</div> <!-- End of Suppliers Page -->
-        
+        <!-- History Page -->
+        <div id="history-page" class="hidden">
+            <h1 class="text-2xl font-bold mb-4">Sales & Expenses History</h1>
+            <button class="btn" style="background: #3b82f6; margin-bottom: 20px;" onclick="downloadReport()">📥 Download Report (CSV)</button>
+            <div class="card">
+                <h3 class="text-lg font-semibold mb-2">Recent Sales</h3>
+                <div id="history-sales-list" class="space-y-2">Loading...</div>
+            </div>
+            <div class="card">
+                <h3 class="text-lg font-semibold mb-2">Recent Expenses</h3>
+                <div id="history-expenses-list" class="space-y-2">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Suppliers Page -->
+        <div id="suppliers-page" class="hidden">
+            <h1 class="text-2xl font-bold mb-4">Suppliers & Restocking</h1>
+            <div class="card">
+                <h3 class="text-lg font-semibold mb-2">Add New Supplier</h3>
+                <input type="text" id="supp-name" placeholder="Supplier Name">
+                <input type="tel" id="supp-phone" placeholder="Phone Number">
+                <button class="btn mt-2" onclick="addSupplier()">Save Supplier</button>
+                <p id="supp-msg" class="text-green-600 mt-2 font-bold"></p>
+            </div>
+            <div class="card">
+                <h3 class="text-lg font-semibold mb-2">Suppliers You Owe</h3>
+                <div id="supplier-list" class="space-y-2">Loading...</div>
+            </div>
+        </div>
     </div> <!-- End of Main Content -->
-<div class="bottom-nav">
-    <div class="nav-item active" onclick="showPage('dashboard', this)">
-        <span class="nav-icon">📊</span> Dashboard
-    </div>
-    <div class="nav-item" onclick="showPage('products', this)">
-        <span class="nav-icon">📦</span> Products
-    </div>
-    <div class="nav-item" onclick="showPage('sales', this)">
-        <span class="nav-icon">💰</span> Sales
-    </div>
-    <div class="nav-item" onclick="showPage('expenses', this)">
-        <span class="nav-icon">💸</span> Expenses
-    </div>
-    <div class="nav-item" onclick="showPage('credit', this)">
-        <span class="nav-icon">🤝</span> Credit
-    </div>
-    <div class="nav-item" onclick="showPage('history', this)">
-        <span class="nav-icon">📜</span> History
-    </div>
-    <div class="nav-item" onclick="showPage('suppliers', this)">
-    <span class="nav-icon">🚚</span> Suppliers
-</div>
-</div>
-</div> <!-- End of Bottom Navigation -->
 
-<!-- Scanner Modal -->
-<div id="scanner-modal" class="hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; flex-direction: column; align-items: center; justify-content: center;">
-    <div id="reader" style="width: 90%; max-width: 500px; background: white; border-radius: 10px; overflow: hidden;"></div>
-    <button onclick="stopScanner()" style="margin-top: 20px; background: #ef4444; color: white; padding: 12px 24px; border: none; border-radius: 5px; font-weight: bold; font-size: 16px;">Close Scanner</button>
-</div>
+    <!-- Mobile Bottom Navigation -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="showPage('dashboard', this)"><span class="nav-icon">📊</span> Dashboard</div>
+        <div class="nav-item" onclick="showPage('products', this)"><span class="nav-icon">📦</span> Products</div>
+        <div class="nav-item" onclick="showPage('sales', this)"><span class="nav-icon">💰</span> Sales</div>
+        <div class="nav-item" onclick="showPage('expenses', this)"><span class="nav-icon">💸</span> Expenses</div>
+        <div class="nav-item" onclick="showPage('credit', this)"><span class="nav-icon">🤝</span> Credit</div>
+        <div class="nav-item" onclick="showPage('history', this)"><span class="nav-icon">📜</span> History</div>
+        <div class="nav-item" onclick="showPage('suppliers', this)"><span class="nav-icon">🚚</span> Suppliers</div>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div id="receipt-modal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; justify-content: center; align-items: center;">
+        <div id="receipt-content" style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center;">
+            <h2 style="font-weight: bold; font-size: 24px; margin-bottom: 5px;">Ifeka Retail</h2>
+            <p style="font-size: 12px; color: #666; margin-bottom: 20px;">Official Receipt</p>
+            <div style="text-align: left; border-top: 1px dashed #ccc; border-bottom: 1px dashed #ccc; padding: 15px 0; margin-bottom: 20px;">
+                <p><strong>Item:</strong> <span id="receipt-item"></span></p>
+                <p><strong>Quantity:</strong> <span id="receipt-qty"></span></p>
+                <p><strong>Total Paid:</strong> <span id="receipt-total" style="font-weight: bold; color: #059669;"></span></p>
+                <p><strong>Date:</strong> <span id="receipt-date"></span></p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="printReceipt()" style="flex: 1; background: #3b82f6; color: white; padding: 10px; border: none; border-radius: 5px; font-weight: bold;">Print</button>
+                <button onclick="shareReceiptWhatsApp()" style="flex: 1; background: #25D366; color: white; padding: 10px; border: none; border-radius: 5px; font-weight: bold;">WhatsApp</button>
+            </div>
+            <button onclick="closeReceipt()" style="margin-top: 15px; background: #ef4444; color: white; padding: 10px; border: none; border-radius: 5px; width: 100%; font-weight: bold;">Close</button>
+        </div>
+    </div>
+
+    <!-- Scanner Modal -->
+    <div id="scanner-modal" class="hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; flex-direction: column; align-items: center; justify-content: center;">
+        <div id="reader" style="width: 90%; max-width: 500px; background: white; border-radius: 10px; overflow: hidden;"></div>
+        <button onclick="stopScanner()" style="margin-top: 20px; background: #ef4444; color: white; padding: 12px 24px; border: none; border-radius: 5px; font-weight: bold; font-size: 16px;">Close Scanner</button>
+    </div>
 
     <script>
-        // 1. Setup Supabase
-        const SUPABASE_URL =  'https://ywpavqsencpilxisltsm.supabase.co';
+        // 1. Setup Supabase (FIXED URL TYPO)
+        const SUPABASE_URL = 'https://ywpavqscnepilxislstm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3cGF2cXNlbmNwaWx4aXNsdHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxMzU1OTAsImV4cCI6MjEwMjcxMTU5MH0.7NblgPa1zhyVzmZzwLuf_qAMJDhFEdRcvDEaIDJk37E';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // 2. Navigation Logic
         function showPage(pageId, element) {
             document.querySelectorAll('.main-content > div').forEach(div => div.classList.add('hidden'));
             document.getElementById(pageId + '-page').classList.remove('hidden');
-            
             document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
             if(element) element.classList.add('active');
 
@@ -285,214 +245,242 @@
             if(pageId === 'suppliers') loadSuppliers();
         }
 
-        
-
         async function loadDashboard() {
-    try {
-        // Get today's date in your local timezone
-        const now = new Date();
-        const offset = now.getTimezoneOffset() * 60000;
-        const localISOTime = (new Date(now - offset)).toISOString().slice(0, -1);
-        const today = localISOTime.split('T')[0];
-        
-        // 1. Get today's sales
-        const { data: sales, error: e1 } = await supabaseClient.schema('retail').from('sales').select('total_price').gte('created_at', today);
-        if (e1) throw new Error(e1.message);
-        const totalSales = sales ? sales.reduce((sum, item) => sum + Number(item.total_price || 0), 0) : 0;
-        document.getElementById('dash-sales').innerText = `₦${totalSales.toLocaleString()}`;
+            try {
+                const now = new Date();
+                const offset = now.getTimezoneOffset() * 60000;
+                const localISOTime = (new Date(now - offset)).toISOString().slice(0, -1);
+                const today = localISOTime.split('T')[0];
+                
+                const { data: sales, error: e1 } = await supabaseClient.schema('retail').from('sales').select('total_price').gte('created_at', today);
+                if (e1) throw new Error(e1.message);
+                const totalSales = sales ? sales.reduce((sum, item) => sum + Number(item.total_price || 0), 0) : 0;
+                document.getElementById('dash-sales').innerText = `₦${totalSales.toLocaleString()}`;
 
-        // 2. Get today's expenses
-        const { data: expenses, error: e2 } = await supabaseClient.schema('retail').from('expenses').select('amount').gte('created_at', today);
-        if (e2) throw new Error(e2.message);
-        const totalExpenses = expenses ? expenses.reduce((sum, item) => sum + Number(item.amount || 0), 0) : 0;
-        document.getElementById('dash-expenses').innerText = `₦${totalExpenses.toLocaleString()}`;
+                const { data: expenses, error: e2 } = await supabaseClient.schema('retail').from('expenses').select('amount').gte('created_at', today);
+                if (e2) throw new Error(e2.message);
+                const totalExpenses = expenses ? expenses.reduce((sum, item) => sum + Number(item.amount || 0), 0) : 0;
+                document.getElementById('dash-expenses').innerText = `₦${totalExpenses.toLocaleString()}`;
 
-        // 3. Get today's profit
-        const { data: profitData, error: e3 } = await supabaseClient.schema('retail').from('sales').select('profit').gte('created_at', today);
-        if (e3) throw new Error(e3.message);
-        
-        // Calculate total profit from sales (Safely handles empty data)
-        const totalProfitFromSales = profitData ? profitData.reduce((sum, item) => sum + Number(item.profit || 0), 0) : 0;
-        
-        // Net Profit = Total Profit - Expenses
-        const netProfit = totalSales - totalExpenses;
-        document.getElementById('dash-profit').innerText = `₦${netProfit.toLocaleString()}`;
+                const netProfit = totalSales - totalExpenses;
+                document.getElementById('dash-profit').innerText = `₦${netProfit.toLocaleString()}`;
 
-        // 4. Get low stock items
-        const { data: lowStock, error: e4 } = await supabaseClient.schema('retail').from('products').select('name, quantity').lte('quantity', 5);
-        if (e4) throw new Error(e4.message);
+                const { data: lowStock, error: e4 } = await supabaseClient.schema('retail').from('products').select('name, quantity').lte('quantity', 5);
+                if (e4) throw new Error(e4.message);
 
-        const stockDiv = document.getElementById('dash-low-stock');
-        stockDiv.innerHTML = '';
-        
-        if (!lowStock || lowStock.length === 0) {
-            stockDiv.innerHTML = '<p class="text-gray-500">All products are well stocked!</p>';
-        } else {
-            lowStock.forEach(p => {
-                stockDiv.innerHTML += `
-                    <div style="display:flex; justify-content:space-between; border-bottom:1px solid #ccc; padding:10px 0;">
-                        <span style="font-weight:bold;">${p.name}</span>
-                        <span style="color:red; font-weight:bold;">${p.quantity} left</span>
+                const stockDiv = document.getElementById('dash-low-stock');
+                stockDiv.innerHTML = '';
+                
+                if (!lowStock || lowStock.length === 0) {
+                    stockDiv.innerHTML = '<p class="text-gray-500">All products are well stocked!</p>';
+                } else {
+                    lowStock.forEach(p => {
+                        stockDiv.innerHTML += `
+                            <div style="display:flex; justify-content:space-between; border-bottom:1px solid #ccc; padding:10px 0;">
+                                <span style="font-weight:bold;">${p.name}</span>
+                                <span style="color:red; font-weight:bold;">${p.quantity} left</span>
+                            </div>
+                        `;
+                    });
+                }
+            } catch (err) {
+                alert("DASHBOARD ERROR: " + err.message);
+            }
+        }
+
+        // Products
+        let allProducts = [];
+        async function loadProducts() {
+            try {
+                const { data, error } = await supabaseClient.schema('retail').from('products').select('*').order('created_at', { ascending: false });
+                if (error) throw new Error(error.message);
+                allProducts = data;
+                renderProductList(allProducts);
+            } catch (err) {
+                alert("PRODUCTS ERROR: " + err.message);
+            }
+        }
+
+        function renderProductList(products) {
+            const listDiv = document.getElementById('product-list');
+            listDiv.innerHTML = products.length === 0 ? '<p>No products found.</p>' : '';
+            products.forEach(product => {
+                const badgeColor = product.quantity <= 5 ? 'background:#fee2e2; color:#991b1b;' : 'background:#dcfce7; color:#166534;';
+                listDiv.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ccc; padding:10px 0;">
+                        <div>
+                            <p style="font-weight:bold; margin:0;">${product.name}</p>
+                            <p style="font-size:12px; color:#666; margin:0;">₦${product.selling_price}</p>
+                        </div>
+                        <div style="padding:5px 10px; border-radius:5px; font-weight:bold; ${badgeColor}">
+                            ${product.quantity} in stock
+                        </div>
                     </div>
                 `;
             });
         }
-    } catch (err) {
-        alert("DASHBOARD ERROR: " + err.message);
-    }
-}
-let allProducts = []; // Global variable to store products for search
 
-async function loadProducts() {
-    try {
-        const { data, error } = await supabaseClient.schema('retail').from('products').select('*').order('created_at', { ascending: false });
-        if (error) throw new Error(error.message);
+        function filterProducts() {
+            const query = document.getElementById('product-search').value.toLowerCase();
+            const filtered = allProducts.filter(p => p.name.toLowerCase().includes(query));
+            renderProductList(filtered);
+        }
 
-        allProducts = data; // Save data for the search bar
-        renderProductList(allProducts);
-    } catch (err) {
-        alert("PRODUCTS ERROR: " + err.message);
-    }
-}
-
-function renderProductList(products) {
-    const listDiv = document.getElementById('product-list');
-    listDiv.innerHTML = products.length === 0 ? '<p>No products found.</p>' : '';
-    
-    products.forEach(product => {
-        const badgeColor = product.quantity <= 5 ? 'background:#fee2e2; color:#991b1b;' : 'background:#dcfce7; color:#166534;';
-        listDiv.innerHTML += `
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ccc; padding:10px 0;">
-                <div>
-                    <p style="font-weight:bold; margin:0;">${product.name}</p>
-                    <p style="font-size:12px; color:#666; margin:0;">₦${product.selling_price}</p>
-                </div>
-                <div style="padding:5px 10px; border-radius:5px; font-weight:bold; ${badgeColor}">
-                    ${product.quantity} in stock
-                </div>
-            </div>
-        `;
-    });
-}
-
-function filterProducts() {
-    const query = document.getElementById('product-search').value.toLowerCase();
-    const filtered = allProducts.filter(p => p.name.toLowerCase().includes(query));
-    renderProductList(filtered);
-}
         async function addProduct() {
-    const name = document.getElementById('prod-name').value;
-    const price = document.getElementById('prod-price').value;
-    const cost = document.getElementById('prod-cost').value;
-    const barcode = document.getElementById('prod-barcode').value; // NEW
-    const qty = document.getElementById('prod-qty').value;
-    
-    if (!name || !price || !cost || !qty) return alert("Please fill all fields");
+            const name = document.getElementById('prod-name').value;
+            const price = document.getElementById('prod-price').value;
+            const cost = document.getElementById('prod-cost').value;
+            const barcode = document.getElementById('prod-barcode').value;
+            const qty = document.getElementById('prod-qty').value;
+            
+            if (!name || !price || !cost || !qty) return alert("Please fill all fields");
 
-    const { error } = await supabaseClient.schema('retail').from('products').insert([{ 
-        name: name, 
-        selling_price: price, 
-        cost_price: cost, 
-        barcode: barcode, // NEW
-        quantity: qty 
-    }]);
-    
-    if (error) alert("Error: " + error.message);
-    else {
-        document.getElementById('msg').innerText = "Product added!";
-        document.getElementById('prod-name').value = '';
-        document.getElementById('prod-price').value = '';
-        document.getElementById('prod-cost').value = '';
-        document.getElementById('prod-barcode').value = ''; // NEW
-        document.getElementById('prod-qty').value = '';
-        loadProducts();
-        setTimeout(() => document.getElementById('msg').innerText = '', 3000);
-    }
-}
-        
+            const { error } = await supabaseClient.schema('retail').from('products').insert([{ name: name, selling_price: price, cost_price: cost, barcode: barcode, quantity: qty }]);
+            
+            if (error) alert("Error: " + error.message);
+            else {
+                document.getElementById('msg').innerText = "Product added!";
+                document.getElementById('prod-name').value = '';
+                document.getElementById('prod-price').value = '';
+                document.getElementById('prod-cost').value = '';
+                document.getElementById('prod-barcode').value = '';
+                document.getElementById('prod-qty').value = '';
+                loadProducts();
+                setTimeout(() => document.getElementById('msg').innerText = '', 3000);
+            }
+        }
 
-        // 5. Sales Logic
+        // Cart Logic
+        let currentCart = [];
         async function loadProductDropdown() {
             const { data, error } = await supabaseClient.schema('retail').from('products').select('*');
             if (error) return alert("Error: " + error.message);
 
             const dropdown = document.getElementById('sale-product');
             dropdown.innerHTML = '<option value="">-- Select a product --</option>';
-            
             data.forEach(p => {
-    dropdown.innerHTML += `<option value="${p.id}" data-price="${p.selling_price}" data-cost="${p.cost_price}" data-stock="${p.quantity}">${p.name} (₦${p.selling_price} - ${p.quantity} in stock)</option>`;
-});
+                dropdown.innerHTML += `<option value="${p.id}" data-name="${p.name}" data-price="${p.selling_price}" data-cost="${p.cost_price}" data-stock="${p.quantity}">${p.name} (₦${p.selling_price} - ${p.quantity} in stock)</option>`;
+            });
         }
 
-        async function recordSale() {
-    const dropdown = document.getElementById('sale-product');
-    const selectedOption = dropdown.options[dropdown.selectedIndex];
-    if (!selectedOption.value) return alert("Please select a product");
-    
-    const qty = parseInt(document.getElementById('sale-qty').value);
-    if (!qty || qty <= 0) return alert("Please enter a valid quantity");
+        function addToCart() {
+            const dropdown = document.getElementById('sale-product');
+            const selectedOption = dropdown.options[dropdown.selectedIndex];
+            const qty = parseInt(document.getElementById('sale-qty').value);
 
-    const productId = selectedOption.value;
-    const productName = selectedOption.text.split(' (')[0];
-    const price = parseFloat(selectedOption.getAttribute('data-price'));
-    const costPrice = parseFloat(selectedOption.getAttribute('data-cost')); // Get cost
-    const currentStock = parseFloat(selectedOption.getAttribute('data-stock'));
+            if (!selectedOption.value) return alert("Please select a product");
+            if (!qty || qty <= 0) return alert("Please enter a valid quantity");
 
-    if (qty > currentStock) return alert("Not enough stock!");
+            const productId = selectedOption.value;
+            const productName = selectedOption.getAttribute('data-name');
+            const price = parseFloat(selectedOption.getAttribute('data-price'));
+            const costPrice = parseFloat(selectedOption.getAttribute('data-cost'));
+            const currentStock = parseFloat(selectedOption.getAttribute('data-stock'));
 
-    const totalPrice = price * qty;
-    const totalProfit = (price - costPrice) * qty; // Calculate profit
+            const existingItem = currentCart.find(item => item.id === productId);
+            const totalQty = existingItem ? existingItem.qty + qty : qty;
 
-    const { error: saleError } = await supabaseClient.schema('retail').from('sales').insert([{ 
-        product_id: productId, 
-        product_name: productName, 
-        quantity_sold: qty, 
-        total_price: totalPrice,
-        profit: totalProfit // Save profit
-    }]);
-    if (saleError) return alert("Error: " + saleError.message);
+            if (totalQty > currentStock) return alert("Not enough stock! You only have " + currentStock);
 
-    const { error: stockError } = await supabaseClient.schema('retail').from('products').update({ quantity: currentStock - qty }).eq('id', productId);
-    if (stockError) return alert("Error updating stock: " + stockError.message);
-
-    // Show the receipt modal
-    document.getElementById('receipt-item').innerText = productName;
-    document.getElementById('receipt-qty').innerText = qty;
-    document.getElementById('receipt-total').innerText = `₦${totalPrice.toLocaleString()}`;
-    document.getElementById('receipt-date').innerText = new Date().toLocaleString();
-    
-    window.lastSale = { name: productName, qty: qty, total: totalPrice };
-
-    document.getElementById('receipt-modal').classList.remove('hidden');
-    document.getElementById('receipt-modal').style.display = 'flex';
-    document.getElementById('sale-qty').value = '';
-    loadProductDropdown(); 
-}
-function closeReceipt() {
-    document.getElementById('receipt-modal').classList.add('hidden');
-    document.getElementById('receipt-modal').style.display = 'none';
-}
-
-function printReceipt() {
-    window.print();
-}
-
-function shareReceiptWhatsApp() {
-    const sale = window.lastSale;
-    if (sale.isCart) {
-        window.open(`https://wa.me/?text=${sale.whatsappText}`, '_blank');
-    } else {
-        // Fallback for single items
-        const text = `*IFEKA RETAIL RECEIPT*%0A-------------------%0AItem: ${sale.name}%0AQty: ${sale.qty}%0ATotal: ₦${sale.total.toLocaleString()}%0ADate: ${new Date().toLocaleDateString()}%0A-------------------%0AThank you!`;
-        window.open(`https://wa.me/?text=${text}`, '_blank');
-    }
-}
-        // 6. Expenses Logic
-        async function loadExpenses() {
-            document.getElementById('exp-amount').value = '';
-            document.getElementById('exp-desc').value = '';
+            if (existingItem) {
+                existingItem.qty += qty;
+            } else {
+                currentCart.push({ id: productId, name: productName, price: price, cost: costPrice, qty: qty });
+            }
+            renderCart();
         }
 
+        function renderCart() {
+            const cartDiv = document.getElementById('cart-items');
+            const totalDiv = document.getElementById('cart-total');
+            cartDiv.innerHTML = '';
+            let total = 0;
+
+            if (currentCart.length === 0) {
+                cartDiv.innerHTML = '<p class="text-gray-500">Cart is empty.</p>';
+            } else {
+                currentCart.forEach((item, index) => {
+                    const itemTotal = item.price * item.qty;
+                    total += itemTotal;
+                    cartDiv.innerHTML += `
+                        <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:5px 0;">
+                            <div>
+                                <p style="font-weight:bold; margin:0;">${item.name}</p>
+                                <p style="font-size:12px; color:#666; margin:0;">${item.qty} x ₦${item.price}</p>
+                            </div>
+                            <div style="text-align:right;">
+                                <p style="font-weight:bold; margin:0;">₦${itemTotal.toLocaleString()}</p>
+                                <button onclick="removeFromCart(${index})" style="color:red; background:none; border:none; font-size:12px; cursor:pointer;">Remove</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            totalDiv.innerText = `₦${total.toLocaleString()}`;
+            document.getElementById('sale-qty').value = 1;
+        }
+
+        function removeFromCart(index) { currentCart.splice(index, 1); renderCart(); }
+        function clearCart() { currentCart = []; renderCart(); }
+
+        async function checkout() {
+            if (currentCart.length === 0) return alert("Cart is empty!");
+            const txId = crypto.randomUUID();
+            let totalReceiptAmount = 0;
+            let receiptText = `*IFEKA RETAIL RECEIPT*%0A-------------------%0A`;
+
+            try {
+                for (const item of currentCart) {
+                    const totalPrice = item.price * item.qty;
+                    const profit = (item.price - item.cost) * item.qty;
+                    totalReceiptAmount += totalPrice;
+
+                    const { error: saleError } = await supabaseClient.schema('retail').from('sales').insert([{ transaction_id: txId, product_id: item.id, product_name: item.name, quantity_sold: item.qty, total_price: totalPrice, profit: profit }]);
+                    if (saleError) throw new Error(saleError.message);
+
+                    const { data: pData } = await supabaseClient.schema('retail').from('products').select('quantity').eq('id', item.id).single();
+                    const newStock = pData.quantity - item.qty;
+                    
+                    const { error: stockError } = await supabaseClient.schema('retail').from('products').update({ quantity: newStock }).eq('id', item.id);
+                    if (stockError) throw new Error(stockError.message);
+
+                    receiptText += `${item.name} (x${item.qty}): ₦${totalPrice.toLocaleString()}%0A`;
+                }
+
+                receiptText += `-------------------%0A*TOTAL: ₦${totalReceiptAmount.toLocaleString()}*%0ADate: ${new Date().toLocaleDateString()}%0AThank you!`;
+
+                document.getElementById('receipt-item').innerText = "Multiple Items";
+                document.getElementById('receipt-qty').innerText = currentCart.reduce((sum, i) => sum + i.qty, 0);
+                document.getElementById('receipt-total').innerText = `₦${totalReceiptAmount.toLocaleString()}`;
+                document.getElementById('receipt-date').innerText = new Date().toLocaleString();
+                
+                window.lastSale = { whatsappText: receiptText, total: totalReceiptAmount, isCart: true };
+
+                document.getElementById('receipt-modal').classList.remove('hidden');
+                document.getElementById('receipt-modal').style.display = 'flex';
+                clearCart();
+            } catch (err) {
+                alert("CHECKOUT ERROR: " + err.message);
+            }
+        }
+
+        function closeReceipt() {
+            document.getElementById('receipt-modal').classList.add('hidden');
+            document.getElementById('receipt-modal').style.display = 'none';
+        }
+        function printReceipt() { window.print(); }
+        function shareReceiptWhatsApp() {
+            const sale = window.lastSale;
+            if (sale.isCart) {
+                window.open(`https://wa.me/?text=${sale.whatsappText}`, '_blank');
+            } else {
+                const text = `*IFEKA RETAIL RECEIPT*%0A-------------------%0AItem: ${sale.name}%0AQty: ${sale.qty}%0ATotal: ₦${sale.total.toLocaleString()}%0A-------------------%0AThank you!`;
+                window.open(`https://wa.me/?text=${text}`, '_blank');
+            }
+        }
+
+        // Expenses
+        async function loadExpenses() { document.getElementById('exp-amount').value = ''; document.getElementById('exp-desc').value = ''; }
         async function addExpense() {
             const amount = document.getElementById('exp-amount').value;
             const description = document.getElementById('exp-desc').value;
@@ -509,7 +497,7 @@ function shareReceiptWhatsApp() {
             }
         }
 
-        // 7. Customers / Credit Logic
+        // Customers
         async function loadCustomers() {
             const { data, error } = await supabaseClient.schema('retail').from('customers').select('*').order('balance', { ascending: false });
             if (error) return alert("Error: " + error.message);
@@ -519,9 +507,9 @@ function shareReceiptWhatsApp() {
             
             data.forEach(cust => {
                 const balanceColor = cust.balance > 0 ? 'color:red;' : 'color:green;';
-                // Format phone: remove leading 0, add 234 if it starts with 0
-const cleanPhone = cust.phone.startsWith('0') ? '234' + cust.phone.slice(1) : cust.phone;
-const whatsappLink = `https://wa.me/${cleanPhone}?text=Hello ${cust.name}, your balance is ₦${cust.balance}. Please pay soon.`;
+                const cleanPhone = cust.phone.startsWith('0') ? '234' + cust.phone.slice(1) : cust.phone;
+                const whatsappLink = `https://wa.me/${cleanPhone}?text=Hello ${cust.name}, your balance is ₦${cust.balance}. Please pay soon.`;
+                
                 listDiv.innerHTML += `
                     <div style="border-bottom:1px solid #ccc; padding:10px 0;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -559,76 +547,197 @@ const whatsappLink = `https://wa.me/${cleanPhone}?text=Hello ${cust.name}, your 
             }
         }
 
-            async function recordDebt(id, currentBalance) {
-        const amount = prompt("Enter amount to ADD to their debt (₦):");
-        if (!amount || isNaN(amount)) return;
-        const { error } = await supabaseClient.schema('retail').from('customers').update({ balance: currentBalance + parseFloat(amount) }).eq('id', id);
-        if (error) alert("Error: " + error.message);
-        else loadCustomers();
-    }
+        async function recordDebt(id, currentBalance) {
+            const amount = prompt("Enter amount to ADD to their debt (₦):");
+            if (!amount || isNaN(amount)) return;
+            const { error } = await supabaseClient.schema('retail').from('customers').update({ balance: currentBalance + parseFloat(amount) }).eq('id', id);
+            if (error) alert("Error: " + error.message);
+            else loadCustomers();
+        }
 
-    async function recordPayment(id, currentBalance) {
-    const amount = prompt("Enter amount they PAID (₦):");
-    if (!amount || isNaN(amount)) return;
-    
-    const paymentAmount = parseFloat(amount);
-    
-    // This prevents paying more than they owe
-    if (paymentAmount > currentBalance) {
-        return alert("Error: They only owe ₦" + currentBalance.toLocaleString());
-    }
-    
-    const { error } = await supabaseClient.schema('retail').from('customers').update({ balance: currentBalance - paymentAmount }).eq('id', id);
-    if (error) alert("Error: " + error.message);
-    else loadCustomers();
-}
+        async function recordPayment(id, currentBalance) {
+            const amount = prompt("Enter amount they PAID (₦):");
+            if (!amount || isNaN(amount)) return;
+            const paymentAmount = parseFloat(amount);
+            if (paymentAmount > currentBalance) return alert("Error: They only owe ₦" + currentBalance.toLocaleString());
+            const { error } = await supabaseClient.schema('retail').from('customers').update({ balance: currentBalance - paymentAmount }).eq('id', id);
+            if (error) alert("Error: " + error.message);
+            else loadCustomers();
+        }
 
-            // 8. Auto-load & Subscription Check
+        // History & Suppliers
+        async function loadHistory() {
+            const { data: sales } = await supabaseClient.schema('retail').from('sales').select('*').order('created_at', { ascending: false }).limit(20);
+            const salesDiv = document.getElementById('history-sales-list');
+            salesDiv.innerHTML = !sales || sales.length === 0 ? '<p>No sales recorded yet.</p>' : '';
+            if (sales) sales.forEach(sale => {
+                salesDiv.innerHTML += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:8px 0;"><div><p style="font-weight:bold; margin:0;">${sale.product_name} (x${sale.quantity_sold})</p><p style="font-size:10px; color:#666; margin:0;">${new Date(sale.created_at).toLocaleDateString()}</p></div><p style="font-weight:bold; color:green; margin:0;">₦${Number(sale.total_price).toLocaleString()}</p></div>`;
+            });
+
+            const { data: expenses } = await supabaseClient.schema('retail').from('expenses').select('*').order('created_at', { ascending: false }).limit(20);
+            const expDiv = document.getElementById('history-expenses-list');
+            expDiv.innerHTML = !expenses || expenses.length === 0 ? '<p>No expenses recorded yet.</p>' : '';
+            if (expenses) expenses.forEach(exp => {
+                expDiv.innerHTML += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:8px 0;"><div><p style="font-weight:bold; margin:0;">${exp.description}</p><p style="font-size:10px; color:#666; margin:0;">${exp.category} • ${new Date(exp.created_at).toLocaleDateString()}</p></div><p style="font-weight:bold; color:red; margin:0;">-₦${Number(exp.amount).toLocaleString()}</p></div>`;
+            });
+        }
+
+        async function loadSuppliers() {
+            try {
+                const { data, error } = await supabaseClient.schema('retail').from('suppliers').select('*').order('balance', { ascending: false });
+                if (error) throw new Error(error.message);
+                const listDiv = document.getElementById('supplier-list');
+                listDiv.innerHTML = data.length === 0 ? '<p>No suppliers found.</p>' : '';
+                
+                data.forEach(supp => {
+                    const balanceColor = supp.balance > 0 ? 'color:red;' : 'color:green;';
+                    const cleanPhone = supp.phone && supp.phone.startsWith('0') ? '234' + supp.phone.slice(1) : supp.phone;
+                    const whatsappLink = `https://wa.me/${cleanPhone}?text=Hello ${supp.name}, I want to make an order / discuss my balance.`;
+                    listDiv.innerHTML += `
+                        <div style="border-bottom:1px solid #ccc; padding:10px 0;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div><p style="font-weight:bold; margin:0;">${supp.name}</p><p style="font-size:12px; color:#666; margin:0;">${supp.phone || 'No phone'}</p></div>
+                                <div style="text-align:right;"><p style="font-weight:bold; margin:0; ${balanceColor}">₦${supp.balance.toLocaleString()}</p></div>
+                            </div>
+                            <div style="margin-top: 10px; display: flex; gap: 10px;">
+                                <button onclick="recordSupplierDebt('${supp.id}', ${supp.balance})" style="background:#fee2e2; color:#991b1b; padding:5px 10px; border-radius:5px; border:1px solid #991b1b; font-size:12px;">I Owe Them</button>
+                                <button onclick="paySupplier('${supp.id}', ${supp.balance})" style="background:#dcfce7; color:#166534; padding:5px 10px; border-radius:5px; border:1px solid #166534; font-size:12px;">Pay Supplier</button>
+                                ${supp.phone ? `<a href="${whatsappLink}" target="_blank" style="background:#25D366; color:white; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:12px; font-weight:bold;">WhatsApp</a>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (err) { alert("SUPPLIERS ERROR: " + err.message); }
+        }
+
+        async function addSupplier() {
+            const name = document.getElementById('supp-name').value;
+            const phone = document.getElementById('supp-phone').value;
+            if (!name) return alert("Please enter a supplier name");
+            const { error } = await supabaseClient.schema('retail').from('suppliers').insert([{ name: name, phone: phone, balance: 0 }]);
+            if (error) alert("Error: " + error.message);
+            else {
+                document.getElementById('supp-msg').innerText = "Supplier added!";
+                document.getElementById('supp-name').value = '';
+                document.getElementById('supp-phone').value = '';
+                await loadSuppliers();
+                setTimeout(() => document.getElementById('supp-msg').innerText = '', 3000);
+            }
+        }
+
+        async function recordSupplierDebt(id, currentBalance) {
+            const amount = prompt("Enter amount you OWE this supplier (₦):");
+            if (!amount || isNaN(amount)) return;
+            const { error } = await supabaseClient.schema('retail').from('suppliers').update({ balance: currentBalance + parseFloat(amount) }).eq('id', id);
+            if (error) alert("Error: " + error.message);
+            else loadSuppliers();
+        }
+
+        async function paySupplier(id, currentBalance) {
+            const amount = prompt("Enter amount you PAID the supplier (₦):");
+            if (!amount || isNaN(amount)) return;
+            const paymentAmount = parseFloat(amount);
+            if (paymentAmount > currentBalance) return alert("Error: You only owe ₦" + currentBalance.toLocaleString());
+            const { error } = await supabaseClient.schema('retail').from('suppliers').update({ balance: currentBalance - paymentAmount }).eq('id', id);
+            if (error) alert("Error: " + error.message);
+            else loadSuppliers();
+        }
+
+        async function downloadReport() {
+            try {
+                const { data: sales } = await supabaseClient.schema('retail').from('sales').select('*').order('created_at', { ascending: false });
+                const { data: expenses } = await supabaseClient.schema('retail').from('expenses').select('*').order('created_at', { ascending: false });
+                let csvContent = "RECENT SALES\nDate,Item,Quantity,Total Price,Profit\n";
+                sales.forEach(s => csvContent += `"${new Date(s.created_at).toLocaleString()}","${s.product_name}",${s.quantity_sold},${s.total_price},${s.profit || 0}\n`);
+                csvContent += "\nRECENT EXPENSES\nDate,Description,Category,Amount\n";
+                expenses.forEach(e => csvContent += `"${new Date(e.created_at).toLocaleString()}","${e.description}","${e.category}",${e.amount}\n`);
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.setAttribute("href", url);
+                link.setAttribute("download", `Ifeka_Report_${new Date().toLocaleDateString()}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (err) { alert("Error downloading report: " + err.message); }
+        }
+
+        // Scanner
+        let html5QrcodeScanner;
+        function startScanner(targetInputId) {
+            document.getElementById('scanner-modal').classList.remove('hidden');
+            document.getElementById('scanner-modal').style.display = 'flex';
+            html5QrcodeScanner = new Html5Qrcode("reader");
+            html5QrcodeScanner.start(
+                { facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } },
+                (decodedText) => {
+                    document.getElementById(targetInputId).value = decodedText;
+                    document.getElementById(targetInputId).dispatchEvent(new Event('change'));
+                    stopScanner();
+                },
+                (errorMessage) => {}
+            ).catch((err) => { alert("Camera error: " + err); stopScanner(); });
+        }
+
+        function stopScanner() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop().then(() => {
+                    html5QrcodeScanner.clear();
+                    document.getElementById('scanner-modal').classList.add('hidden');
+                    document.getElementById('scanner-modal').style.display = 'none';
+                }).catch(err => console.log(err));
+            }
+        }
+
+        async function handleSaleScan(barcode) {
+            if (!barcode) return;
+            try {
+                const { data: product, error } = await supabaseClient.schema('retail').from('products').select('*').eq('barcode', barcode).single();
+                if (error || !product) { alert("❌ Product not found! Please add it in the Inventory tab first."); return; }
+                const existingItem = currentCart.find(item => item.id === product.id);
+                if (existingItem) { existingItem.qty += 1; } 
+                else { currentCart.push({ id: product.id, name: product.name, price: product.selling_price, cost: product.cost_price, qty: 1 }); }
+                renderCart();
+                document.getElementById('sale-msg').innerText = `✅ Scanned: ${product.name}`;
+                setTimeout(() => document.getElementById('sale-msg').innerText = '', 3000);
+            } catch (err) { alert("Error scanning: " + err.message); } 
+            finally { document.getElementById('sale-scan-input').value = ''; }
+        }
+
+        // Paystack Subscription
         window.onload = function() { 
             checkSubscription();
             loadDashboard(); 
         };
-
         let settingsData = null;
-        alert("Checking subscription...");
 
         async function checkSubscription() {
-    alert("1. Starting subscription check..."); // Debug alert
-    try {
-        const { data, error } = await supabaseClient.schema('retail').from('app_settings').select('*').single();
-        if (error) throw new Error(error.message);
-
-        settingsData = data;
-        alert("2. Database connected. Status: " + data.is_subscribed); // Debug alert
-
-        // FORCED TEST: If not subscribed, show paywall. (Ignoring the date for now)
-        if (data.is_subscribed === false) {
-            alert("3. Opening Paywall!"); // Debug alert
-            document.getElementById('paywall-modal').classList.remove('hidden');
-            document.getElementById('paywall-modal').style.display = 'flex';
-        } else {
-            document.getElementById('paywall-modal').classList.add('hidden');
-            document.getElementById('paywall-modal').style.display = 'none';
-        }
-    } catch (err) {
-        alert("SUBSCRIPTION ERROR: " + err.message);
-    }
-}
+            alert("1. Starting subscription check...");
+            try {
+                const { data, error } = await supabaseClient.schema('retail').from('app_settings').select('*').single();
+                if (error) throw new Error(error.message);
+                settingsData = data;
+                alert("2. Database connected. Status: " + data.is_subscribed);
+                if (data.is_subscribed === false) {
+                    alert("3. Opening Paywall!");
+                    document.getElementById('paywall-modal').classList.remove('hidden');
+                    document.getElementById('paywall-modal').style.display = 'flex';
+                } else {
+                    document.getElementById('paywall-modal').classList.add('hidden');
+                    document.getElementById('paywall-modal').style.display = 'none';
+                }
+            } catch (err) { alert("SUBSCRIPTION ERROR: " + err.message); }
         }
 
         function payWithPaystack() {
             let handler = PaystackPop.setup({
-                key: 'pk_test_40b75cbe14646f85beb08ee423a76ad3065bd89c', // <--- PUT YOUR PAYSTACK PUBLIC KEY HERE
+                key: 'pk_test_40b75cbe14646f85beb08ee423a76ad3065bd89c', 
                 email: 'customer@ifekaretail.com', 
-                amount: 200000, // ₦2,000 in kobo
+                amount: 200000,
                 currency: 'NGN',
                 ref: 'IFK_' + Math.floor((Math.random() * 1000000000) + 1),
-                onClose: function(){
-                    alert('Transaction cancelled. You must subscribe to use the app.');
-                },
-                callback: function(response){
-                    unlockApp(response.reference);
-                }
+                onClose: function(){ alert('Transaction cancelled. You must subscribe to use the app.'); },
+                callback: function(response){ unlockApp(response.reference); }
             });
             handler.openIframe();
         }
@@ -637,414 +746,11 @@ const whatsappLink = `https://wa.me/${cleanPhone}?text=Hello ${cust.name}, your 
             try {
                 const { error } = await supabaseClient.schema('retail').from('app_settings').update({ is_subscribed: true }).eq('id', settingsData.id);
                 if (error) throw new Error(error.message);
-
                 alert("Payment successful! Welcome to Ifeka Retail Pro. Ref: " + paystackRef);
                 document.getElementById('paywall-modal').classList.add('hidden');
                 document.getElementById('paywall-modal').style.display = 'none';
-                
-            } catch (err) {
-                alert("Error unlocking app: " + err.message);
-            }
+            } catch (err) { alert("Error unlocking app: " + err.message); }
         }
-    
-        
-        // 9. History Logic
-async function loadHistory() {
-    // Load Sales
-    const { data: sales } = await supabaseClient.schema('retail').from('sales').select('*').order('created_at', { ascending: false }).limit(20);
-    const salesDiv = document.getElementById('history-sales-list');
-    salesDiv.innerHTML = '';
-    
-    if (!sales || sales.length === 0) {
-        salesDiv.innerHTML = '<p>No sales recorded yet.</p>';
-    } else {
-        sales.forEach(sale => {
-            const date = new Date(sale.created_at).toLocaleDateString();
-            salesDiv.innerHTML += `
-                <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:8px 0;">
-                    <div>
-                        <p style="font-weight:bold; margin:0;">${sale.product_name} (x${sale.quantity_sold})</p>
-                        <p style="font-size:10px; color:#666; margin:0;">${date}</p>
-                    </div>
-                    <p style="font-weight:bold; color:green; margin:0;">₦${Number(sale.total_price).toLocaleString()}</p>
-                </div>
-            `;
-        });
-    }
-
-    // Load Expenses
-    const { data: expenses } = await supabaseClient.schema('retail').from('expenses').select('*').order('created_at', { ascending: false }).limit(20);
-    const expDiv = document.getElementById('history-expenses-list');
-    expDiv.innerHTML = '';
-    
-    if (!expenses || expenses.length === 0) {
-        expDiv.innerHTML = '<p>No expenses recorded yet.</p>';
-    } else {
-        expenses.forEach(exp => {
-            const date = new Date(exp.created_at).toLocaleDateString();
-            expDiv.innerHTML += `
-                <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:8px 0;">
-                    <div>
-                        <p style="font-weight:bold; margin:0;">${exp.description}</p>
-                        <p style="font-size:10px; color:#666; margin:0;">${exp.category} • ${date}</p>
-                    </div>
-                    <p style="font-weight:bold; color:red; margin:0;">-₦${Number(exp.amount).toLocaleString()}</p>
-                </div>
-            `;
-        });
-    }
-}
-        // 10. Suppliers Logic
-async function loadSuppliers() {
-    try {
-        const { data, error } = await supabaseClient.schema('retail').from('suppliers').select('*').order('balance', { ascending: false });
-        if (error) throw new Error(error.message);
-
-        const listDiv = document.getElementById('supplier-list');
-        listDiv.innerHTML = data.length === 0 ? '<p>No suppliers found.</p>' : '';
-        
-        data.forEach(supp => {
-            const balanceColor = supp.balance > 0 ? 'color:red;' : 'color:green;';
-            const cleanPhone = supp.phone && supp.phone.startsWith('0') ? '234' + supp.phone.slice(1) : supp.phone;
-            const whatsappLink = `https://wa.me/${cleanPhone}?text=Hello ${supp.name}, I want to make an order / discuss my balance.`;
-            
-            listDiv.innerHTML += `
-                <div style="border-bottom:1px solid #ccc; padding:10px 0;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <p style="font-weight:bold; margin:0;">${supp.name}</p>
-                            <p style="font-size:12px; color:#666; margin:0;">${supp.phone || 'No phone'}</p>
-                        </div>
-                        <div style="text-align:right;">
-                            <p style="font-weight:bold; margin:0; ${balanceColor}">₦${supp.balance.toLocaleString()}</p>
-                        </div>
-                    </div>
-                    <div style="margin-top: 10px; display: flex; gap: 10px;">
-                        <button onclick="recordSupplierDebt('${supp.id}', ${supp.balance})" style="background:#fee2e2; color:#991b1b; padding:5px 10px; border-radius:5px; border:1px solid #991b1b; font-size:12px;">I Owe Them</button>
-                        <button onclick="paySupplier('${supp.id}', ${supp.balance})" style="background:#dcfce7; color:#166534; padding:5px 10px; border-radius:5px; border:1px solid #166534; font-size:12px;">Pay Supplier</button>
-                        ${supp.phone ? `<a href="${whatsappLink}" target="_blank" style="background:#25D366; color:white; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:12px; font-weight:bold;">WhatsApp</a>` : ''}
-                    </div>
-                </div>
-            `;
-        });
-    } catch (err) {
-        alert("SUPPLIERS ERROR: " + err.message);
-    }
-}
-
-async function addSupplier() {
-    const name = document.getElementById('supp-name').value;
-    const phone = document.getElementById('supp-phone').value;
-    if (!name) return alert("Please enter a supplier name");
-
-    const { error } = await supabaseClient.schema('retail').from('suppliers').insert([{ name: name, phone: phone, balance: 0 }]);
-    if (error) alert("Error: " + error.message);
-    else {
-        document.getElementById('supp-msg').innerText = "Supplier added!";
-        document.getElementById('supp-name').value = '';
-        document.getElementById('supp-phone').value = '';
-        await loadSuppliers();
-        setTimeout(() => document.getElementById('supp-msg').innerText = '', 3000);
-    }
-}
-
-async function recordSupplierDebt(id, currentBalance) {
-    const amount = prompt("Enter amount you OWE this supplier (₦):");
-    if (!amount || isNaN(amount)) return;
-    const { error } = await supabaseClient.schema('retail').from('suppliers').update({ balance: currentBalance + parseFloat(amount) }).eq('id', id);
-    if (error) alert("Error: " + error.message);
-    else loadSuppliers();
-}
-
-async function paySupplier(id, currentBalance) {
-    const amount = prompt("Enter amount you PAID the supplier (₦):");
-    if (!amount || isNaN(amount)) return;
-    
-    const paymentAmount = parseFloat(amount);
-    if (paymentAmount > currentBalance) return alert("Error: You only owe ₦" + currentBalance.toLocaleString());
-    
-    const { error } = await supabaseClient.schema('retail').from('suppliers').update({ balance: currentBalance - paymentAmount }).eq('id', id);
-    if (error) alert("Error: " + error.message);
-    else loadSuppliers();
-}
-        // 11. Download CSV Report
-async function downloadReport() {
-    try {
-        const { data: sales } = await supabaseClient.schema('retail').from('sales').select('*').order('created_at', { ascending: false });
-        const { data: expenses } = await supabaseClient.schema('retail').from('expenses').select('*').order('created_at', { ascending: false });
-
-        let csvContent = "RECENT SALES\nDate,Item,Quantity,Total Price,Profit\n";
-        sales.forEach(s => {
-            csvContent += `"${new Date(s.created_at).toLocaleString()}","${s.product_name}",${s.quantity_sold},${s.total_price},${s.profit || 0}\n`;
-        });
-
-        csvContent += "\nRECENT EXPENSES\nDate,Description,Category,Amount\n";
-        expenses.forEach(e => {
-            csvContent += `"${new Date(e.created_at).toLocaleString()}","${e.description}","${e.category}",${e.amount}\n`;
-        });
-
-        // Use Blob method (Works much better on phones)
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.setAttribute("href", url);
-        link.setAttribute("download", `Ifeka_Report_${new Date().toLocaleDateString()}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    } catch (err) {
-        alert("Error downloading report: " + err.message);
-    }
-}
-     // 12. Barcode Scanner Logic
-let html5QrcodeScanner;
-
-function startScanner(targetInputId) {
-    document.getElementById('scanner-modal').classList.remove('hidden');
-    document.getElementById('scanner-modal').style.display = 'flex';
-    
-    html5QrcodeScanner = new Html5Qrcode("reader");
-    html5QrcodeScanner.start(
-        { facingMode: "environment" }, // Use back camera
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        (decodedText) => {
-            // Success! Put the barcode in the input field
-            document.getElementById(targetInputId).value = decodedText;
-document.getElementById(targetInputId).dispatchEvent(new Event('change')); // Triggers the lookup
-            stopScanner();
-        },
-        (errorMessage) => {
-            // Ignore scanning errors (happens every frame until it finds a barcode)
-        }
-    ).catch((err) => {
-        alert("Camera error: " + err);
-        stopScanner();
-    });
-}
-
-function stopScanner() {
-    if (html5QrcodeScanner) {
-        html5QrcodeScanner.stop().then(() => {
-            html5QrcodeScanner.clear();
-            document.getElementById('scanner-modal').classList.add('hidden');
-            document.getElementById('scanner-modal').style.display = 'none';
-        }).catch(err => console.log(err));
-    }
-} 
-        // 13. Handle Barcode Scan for Sales
-async function handleSaleScan(barcode) {
-    if (!barcode) return;
-    
-    try {
-        // Find the product in Supabase with this barcode
-        const { data: product, error } = await supabaseClient
-            .schema('retail')
-            .from('products')
-            .select('*')
-            .eq('barcode', barcode)
-            .single();
-
-        if (error || !product) {
-            return alert("❌ Product not found! Please add it in the Inventory tab first.");
-        }
-
-        // Auto-select the product in the dropdown
-        const dropdown = document.getElementById('sale-product');
-        dropdown.value = product.id;
-        
-        // Set quantity to 1 by default
-        document.getElementById('sale-qty').value = 1;
-
-        // Let the user know it worked
-        document.getElementById('sale-msg').innerText = `✅ Found: ${product.name} (₦${product.selling_price})`;
-        setTimeout(() => document.getElementById('sale-msg').innerText = '', 3000);
-
-    } catch (err) {
-        alert("Error scanning: " + err.message);
-    } finally {
-        // Clear the hidden input so you can scan again
-        document.getElementById('sale-scan-input').value = '';
-    }
-}
-        // --- CART LOGIC ---
-let currentCart = []; // This holds the items before checkout
-
-async function loadProductDropdown() {
-    const { data, error } = await supabaseClient.schema('retail').from('products').select('*');
-    if (error) return alert("Error: " + error.message);
-
-    const dropdown = document.getElementById('sale-product');
-    dropdown.innerHTML = '<option value="">-- Select a product --</option>';
-    
-    data.forEach(p => {
-        dropdown.innerHTML += `<option value="${p.id}" data-name="${p.name}" data-price="${p.selling_price}" data-cost="${p.cost_price}" data-stock="${p.quantity}">${p.name} (₦${p.selling_price} - ${p.quantity} in stock)</option>`;
-    });
-}
-
-function addToCart() {
-    const dropdown = document.getElementById('sale-product');
-    const selectedOption = dropdown.options[dropdown.selectedIndex];
-    const qty = parseInt(document.getElementById('sale-qty').value);
-
-    if (!selectedOption.value) return alert("Please select a product");
-    if (!qty || qty <= 0) return alert("Please enter a valid quantity");
-
-    const productId = selectedOption.value;
-    const productName = selectedOption.getAttribute('data-name');
-    const price = parseFloat(selectedOption.getAttribute('data-price'));
-    const costPrice = parseFloat(selectedOption.getAttribute('data-cost'));
-    const currentStock = parseFloat(selectedOption.getAttribute('data-stock'));
-
-    // Check if item is already in cart
-    const existingItem = currentCart.find(item => item.id === productId);
-    const totalQty = existingItem ? existingItem.qty + qty : qty;
-
-    if (totalQty > currentStock) return alert("Not enough stock! You only have " + currentStock);
-
-    if (existingItem) {
-        existingItem.qty += qty; // Update quantity if already in cart
-    } else {
-        currentCart.push({
-            id: productId,
-            name: productName,
-            price: price,
-            cost: costPrice,
-            qty: qty
-        });
-    }
-
-    renderCart();
-}
-
-function renderCart() {
-    const cartDiv = document.getElementById('cart-items');
-    const totalDiv = document.getElementById('cart-total');
-    cartDiv.innerHTML = '';
-    let total = 0;
-
-    if (currentCart.length === 0) {
-        cartDiv.innerHTML = '<p class="text-gray-500">Cart is empty.</p>';
-    } else {
-        currentCart.forEach((item, index) => {
-            const itemTotal = item.price * item.qty;
-            total += itemTotal;
-            cartDiv.innerHTML += `
-                <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:5px 0;">
-                    <div>
-                        <p style="font-weight:bold; margin:0;">${item.name}</p>
-                        <p style="font-size:12px; color:#666; margin:0;">${item.qty} x ₦${item.price}</p>
-                    </div>
-                    <div style="text-align:right;">
-                        <p style="font-weight:bold; margin:0;">₦${itemTotal.toLocaleString()}</p>
-                        <button onclick="removeFromCart(${index})" style="color:red; background:none; border:none; font-size:12px; cursor:pointer;">Remove</button>
-                    </div>
-                </div>
-            `;
-        });
-    }
-    totalDiv.innerText = `₦${total.toLocaleString()}`;
-    document.getElementById('sale-qty').value = 1; // reset qty
-}
-
-function removeFromCart(index) {
-    currentCart.splice(index, 1);
-    renderCart();
-}
-
-function clearCart() {
-    currentCart = [];
-    renderCart();
-}
-
-async function checkout() {
-    if (currentCart.length === 0) return alert("Cart is empty!");
-    
-    const txId = crypto.randomUUID(); // Group all items under one transaction ID
-    let totalReceiptAmount = 0;
-    let receiptText = `*IFEKA RETAIL RECEIPT*%0A-------------------%0A`;
-
-    try {
-        // Loop through the cart and save each item
-        for (const item of currentCart) {
-            const totalPrice = item.price * item.qty;
-            const profit = (item.price - item.cost) * item.qty;
-            totalReceiptAmount += totalPrice;
-
-            // 1. Save to database
-            const { error: saleError } = await supabaseClient.schema('retail').from('sales').insert([{ 
-                transaction_id: txId,
-                product_id: item.id, 
-                product_name: item.name, 
-                quantity_sold: item.qty, 
-                total_price: totalPrice,
-                profit: profit
-            }]);
-            if (saleError) throw new Error(saleError.message);
-
-            // 2. Update Stock (Get current stock first)
-            const { data: pData } = await supabaseClient.schema('retail').from('products').select('quantity').eq('id', item.id).single();
-            const newStock = pData.quantity - item.qty;
-            
-            const { error: stockError } = await supabaseClient.schema('retail').from('products').update({ quantity: newStock }).eq('id', item.id);
-            if (stockError) throw new Error(stockError.message);
-
-            // 3. Add to WhatsApp Receipt text
-            receiptText += `${item.name} (x${item.qty}): ₦${totalPrice.toLocaleString()}%0A`;
-        }
-
-        receiptText += `-------------------%0A*TOTAL: ₦${totalReceiptAmount.toLocaleString()}*%0ADate: ${new Date().toLocaleDateString()}%0AThank you for your business!`;
-
-        // Show the Receipt Modal
-        document.getElementById('receipt-item').innerText = "Multiple Items";
-        document.getElementById('receipt-qty').innerText = currentCart.reduce((sum, i) => sum + i.qty, 0);
-        document.getElementById('receipt-total').innerText = `₦${totalReceiptAmount.toLocaleString()}`;
-        document.getElementById('receipt-date').innerText = new Date().toLocaleString();
-        
-        // Save data for WhatsApp sharing
-        window.lastSale = { whatsappText: receiptText, total: totalReceiptAmount, isCart: true };
-
-        document.getElementById('receipt-modal').classList.remove('hidden');
-        document.getElementById('receipt-modal').style.display = 'flex';
-        
-        clearCart(); // Empty the cart
-
-    } catch (err) {
-        alert("CHECKOUT ERROR: " + err.message);
-    }
-}
-
-// Update handleSaleScan to add to cart automatically
-async function handleSaleScan(barcode) {
-    if (!barcode) return;
-    
-    try {
-        const { data: product, error } = await supabaseClient.schema('retail').from('products').select('*').eq('barcode', barcode).single();
-
-        if (error || !product) {
-            alert("❌ Product not found! Please add it in the Inventory tab first.");
-            return;
-        }
-
-        // If found, automatically add 1 to cart
-        const existingItem = currentCart.find(item => item.id === product.id);
-        if (existingItem) {
-            existingItem.qty += 1;
-        } else {
-            currentCart.push({ id: product.id, name: product.name, price: product.selling_price, cost: product.cost_price, qty: 1 });
-        }
-        
-        renderCart();
-        document.getElementById('sale-msg').innerText = `✅ Scanned: ${product.name}`;
-        setTimeout(() => document.getElementById('sale-msg').innerText = '', 3000);
-        <p id="sale-msg"></p>
-
-    } catch (err) {
-        alert("Error scanning: " + err.message);
-    } finally {
-        document.getElementById('sale-scan-input').value = '';
-    }
-}
-// --- END CART LOGIC ---
-</script>
+    </script>
 </body>
 </html>
