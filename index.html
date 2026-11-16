@@ -748,25 +748,27 @@
         settingsData = data;
         
         const now = new Date();
-        const trialEnd = new Date(data.trial_ends_at);
-        const daysLeft = Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24));
+        const expiryDate = new Date(data.trial_ends_at);
+        const daysLeft = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
 
-        if (data.is_subscribed === true) {
-            // Subscribed user - hide everything
+        // 1. If the date has passed, lock the app NO MATTER WHAT
+        if (now > expiryDate) {
+            document.getElementById('paywall-modal').classList.remove('hidden');
+            document.getElementById('paywall-modal').style.display = 'flex';
+            document.getElementById('trial-banner').classList.add('hidden');
+        } 
+        // 2. If they are subscribed but not expired, let them in
+        else if (data.is_subscribed === true) {
             document.getElementById('paywall-modal').classList.add('hidden');
             document.getElementById('paywall-modal').style.display = 'none';
             document.getElementById('trial-banner').classList.add('hidden');
-        } else if (daysLeft > 0) {
-            // On Trial - show countdown banner
+        } 
+        // 3. If they are on trial, show the banner
+        else {
             document.getElementById('trial-banner').innerText = `⏳ Trial Active: ${daysLeft} days left`;
             document.getElementById('trial-banner').classList.remove('hidden');
             document.getElementById('paywall-modal').classList.add('hidden');
             document.getElementById('paywall-modal').style.display = 'none';
-        } else {
-            // Trial ended - show paywall
-            document.getElementById('paywall-modal').classList.remove('hidden');
-            document.getElementById('paywall-modal').style.display = 'flex';
-            document.getElementById('trial-banner').classList.add('hidden');
         }
     } catch (err) {
         alert("SUBSCRIPTION ERROR: " + err.message);
