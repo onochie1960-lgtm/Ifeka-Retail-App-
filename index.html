@@ -633,8 +633,67 @@ const whatsappLink = `https://wa.me/${cleanPhone}?text=Hello ${cust.name}, your 
     else loadCustomers();
 }
 
-    // 8. Auto-load Dashboard
-    window.onload = function() { loadDashboard(); };
+            // 8. Auto-load & Subscription Check
+        window.onload = function() { 
+            checkSubscription();
+            loadDashboard(); 
+        };
+
+        let settingsData = null;
+
+        async function checkSubscription() {
+            try {
+                const { data, error } = await supabaseClient.schema('retail').from('app_settings').select('*').single();
+                if (error) throw new Error(error.message);
+
+                settingsData = data;
+                const now = new Date();
+                const trialEnd = new Date(data.trial_ends_at);
+
+                // If not subscribed AND trial has ended, show paywall
+                if (data.is_subscribed === false && now > trialEnd) {
+                    document.getElementById('paywall-modal').classList.remove('hidden');
+                    document.getElementById('paywall-modal').style.display = 'flex';
+                } else {
+                    document.getElementById('paywall-modal').classList.add('hidden');
+                    document.getElementById('paywall-modal').style.display = 'none';
+                }
+            } catch (err) {
+                console.error("Error checking subscription:", err);
+            }
+        }
+
+        function payWithPaystack() {
+            let handler = PaystackPop.setup({
+                key: 'pk_test_40b75cbe14646f85beb08ee423a76ad3065bd89c', // <--- PUT YOUR PAYSTACK PUBLIC KEY HERE
+                email: 'customer@ifekaretail.com', 
+                amount: 200000, // ₦2,000 in kobo
+                currency: 'NGN',
+                ref: 'IFK_' + Math.floor((Math.random() * 1000000000) + 1),
+                onClose: function(){
+                    alert('Transaction cancelled. You must subscribe to use the app.');
+                },
+                callback: function(response){
+                    unlockApp(response.reference);
+                }
+            });
+            handler.openIframe();
+        }
+
+        async function unlockApp(paystackRef) {
+            try {
+                const { error } = await supabaseClient.schema('retail').from('app_settings').update({ is_subscribed: true }).eq('id', settingsData.id);
+                if (error) throw new Error(error.message);
+
+                alert("Payment successful! Welcome to Ifeka Retail Pro. Ref: " + paystackRef);
+                document.getElementById('paywall-modal').classList.add('hidden');
+                document.getElementById('paywall-modal').style.display = 'none';
+                
+            } catch (err) {
+                alert("Error unlocking app: " + err.message);
+            }
+        }
+    
         
         // 9. History Logic
 async function loadHistory() {
@@ -1024,6 +1083,7 @@ async function handleSaleScan(barcode) {
         renderCart();
         document.getElementById('sale-msg').innerText = `✅ Scanned: ${product.name}`;
         setTimeout(() => document.getElementById('sale-msg').innerText = '', 3000);
+        <p id="sale-msg"></p>
 
     } catch (err) {
         alert("Error scanning: " + err.message);
