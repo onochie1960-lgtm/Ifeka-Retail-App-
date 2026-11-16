@@ -593,25 +593,27 @@ const whatsappLink = `https://wa.me/${cleanPhone}?text=Hello ${cust.name}, your 
         alert("Checking subscription...");
 
         async function checkSubscription() {
-            try {
-                const { data, error } = await supabaseClient.schema('retail').from('app_settings').select('*').single();
-                if (error) throw new Error(error.message);
+    alert("1. Starting subscription check..."); // Debug alert
+    try {
+        const { data, error } = await supabaseClient.schema('retail').from('app_settings').select('*').single();
+        if (error) throw new Error(error.message);
 
-                settingsData = data;
-                const now = new Date();
-                const trialEnd = new Date(data.trial_ends_at);
+        settingsData = data;
+        alert("2. Database connected. Status: " + data.is_subscribed); // Debug alert
 
-                // If not subscribed AND trial has ended, show paywall
-                if (data.is_subscribed === false && now > trialEnd) {
-                    document.getElementById('paywall-modal').classList.remove('hidden');
-                    document.getElementById('paywall-modal').style.display = 'flex';
-                } else {
-                    document.getElementById('paywall-modal').classList.add('hidden');
-                    document.getElementById('paywall-modal').style.display = 'none';
-                }
-            } catch (err) {
-                console.error("Error checking subscription:", err);
-            }
+        // FORCED TEST: If not subscribed, show paywall. (Ignoring the date for now)
+        if (data.is_subscribed === false) {
+            alert("3. Opening Paywall!"); // Debug alert
+            document.getElementById('paywall-modal').classList.remove('hidden');
+            document.getElementById('paywall-modal').style.display = 'flex';
+        } else {
+            document.getElementById('paywall-modal').classList.add('hidden');
+            document.getElementById('paywall-modal').style.display = 'none';
+        }
+    } catch (err) {
+        alert("SUBSCRIPTION ERROR: " + err.message);
+    }
+}
         }
 
         function payWithPaystack() {
