@@ -827,45 +827,77 @@
             } catch (err) { alert("Error unlocking app: " + err.message); }
         }
         
+                // --- LOGIN LOGIC ---
         async function loginWithPin() {
-    const shopName = document.getElementById('login-shop-name').value.trim();
-    const pin = document.getElementById('login-pin').value.trim();
-    const errorMsg = document.getElementById('login-error');
+            const shopName = document.getElementById('login-shop-name').value.trim();
+            const pin = document.getElementById('login-pin').value.trim();
+            const errorMsg = document.getElementById('login-error');
 
-    if (!shopName || !pin) {
-        errorMsg.innerText = "Please enter both Shop Name and PIN.";
-        return;
-    }
+            if (!shopName || !pin) {
+                errorMsg.innerText = "Please enter both Shop Name and PIN.";
+                return;
+            }
 
-    // DEBUG ALERT 1
-    alert("Sending to DB:\nShop: '" + shopName + "'\nPIN: '" + pin + "'");
+            // Debug Alert
+            alert("Sending to DB:\nShop: '" + shopName + "'\nPIN: '" + pin + "'");
 
-    const { data: shopData, error } = await supabaseClient
-        .schema('retail')
-        .from('shops')
-        .select('*')
-        .eq('shop_name', shopName)
-        .eq('owner_pin', pin)
-        .single();
+            const { data: shopData, error } = await supabaseClient
+                .schema('retail')
+                .from('shops')
+                .select('*')
+                .eq('shop_name', shopName)
+                .eq('owner_pin', pin)
+                .single();
 
-    // DEBUG ALERT 2
-    if (error && error.code !== 'PGRST116') {
-        alert("Database Error: " + error.message);
-    }
+            if (error && error.code !== 'PGRST116') {
+                alert("Database Error: " + error.message);
+            }
 
-    if (shopData) {
-        currentShopId = shopData.id;
-        document.getElementById('login-screen').style.display = 'none';
-        checkSubscription();
-        loadDashboard();
-        return;
-    }
+            if (shopData) {
+                currentShopId = shopData.id;
+                document.getElementById('login-screen').style.display = 'none';
+                checkSubscription();
+                loadDashboard();
+                return;
+            }
 
-    // If we get here, login failed
-    errorMsg.innerText = "❌ Incorrect Shop Name or PIN.";
-    document.getElementById('login-pin').value = '';
-}
+            // Check if Cashier
+            const { data: shopByName } = await supabaseClient
+                .schema('retail')
+                .from('shops')
+                .select('id')
+                .eq('shop_name', shopName)
+                .single();
 
+            if (shopByName) {
+                const { data: staffData } = await supabaseClient
+                    .schema('retail')
+                    .from('staff')
+                    .select('*')
+                    .eq('shop_id', shopByName.id)
+                    .eq('pin', pin)
+                    .single();
+
+                if (staffData) {
+                    currentShopId = shopByName.id;
+                    document.getElementById('login-screen').style.display = 'none';
+                    
+                    const navItems = document.querySelectorAll('.nav-item');
+                    navItems.forEach((item, index) => {
+                        if (index !== 2) item.style.display = 'none';
+                    });
+
+                    const salesButton = document.querySelectorAll('.nav-item')[2];
+                    showPage('sales', salesButton);
+                    return;
+                }
+            }
+
+            errorMsg.innerText = "❌ Incorrect Shop Name or PIN.";
+            document.getElementById('login-pin').value = '';
+        }
+
+        // --- STAFF LOGIC ---
         async function loadStaff() {
             const { data, error } = await supabaseClient.schema('retail').from('staff').select('*').eq('shop_id', currentShopId).order('created_at', { ascending: false });
             if (error) return alert("Error: " + error.message);
@@ -914,10 +946,69 @@
             if (error) alert("Error: " + error.message);
             else loadStaff();
         }
+
+        // --- PAYSTACK SUBSCRIPTION LOGIC ---
+        function payWithPaystack() {
+            let handler = PaystackPop.setup({
+                key: 'pk_test_40b75cbe14646f85beb08ee423a76ad3065bd89c', 
+                email: 'customer@ifekaretail.com', 
+                amount: 400000, // ₦4,000 in kobo
+                currency: 'NGN',
+                ref: 'IFK_' + Math.floor((Math.random() * 1000000000) + 1),
+                onClose: function(){
+                    alert('Transaction cancelled. You must subscribe to use the app.');
+                },
+                callback: function(response){
+                    unlockApp(response.reference);
+                }
+            });
+            handler.openIframe();
+        }
+
+        async function unlockApp(paystackRef) {
+            try {
+                const { error } = await supabaseClient.schema('retail').from('shops').update({ is_subscribed: true }).eq('id', currentShopId);
+                if (error) throw new Error(error.message);
+                alert("Payment successful! Welcome to Ifeka Retail Pro. Ref: " + paystackRef);
+                document.getElementById('paywall-modal').classList.add('hidden');
+                document.getElementById('paywall-modal').style.display = 'none';
+            } catch (err) { alert("Error unlocking app: " + err.message); }
+        }
+
+        // --- SUBSCRIPTION LOGIC ---
+        let settingsData = null;
+
+        async function checkSubscription() {
+            try {
+                const { data, error } = await supabaseClient.schema('retail').from('shops').select('*').eq('id', currentShopId).single();
+                if (error) return; 
+                
+                settingsData = data;
+                const now = new Date();
+                const expiryDate = new Date(data.trial_ends_at);
+                const daysLeft = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+
+                if (now > expiryDate) {
+                    document.getElementById('paywall-modal').classList.remove('hidden');
+                    document.getElementById('paywall-modal').style.display = 'flex';
+                    document.getElementById('trial-banner').classList.add('hidden');
+                } else if (data.is_subscribed === true) {
+                    document.getElementById('paywall-modal').classList.add('hidden');
+                    document.getElementById('paywall-modal').style.display = 'none';
+                    document.getElementById('trial-banner').classList.add('hidden');
+                } else {
+                    document.getElementById('trial-banner').innerText = `⏳ Trial Active: ${daysLeft} days left`;
+                    document.getElementById('trial-banner').classList.remove('hidden');
+                    document.getElementById('paywall-modal').classList.add('hidden');
+                    document.getElementById('paywall-modal').style.display = 'none';
+                }
+            } catch (err) {
+                console.log("Sub check error:", err);
+            }
+        }
     </script>
 </body>
 </html>
-        
 
      
                 
