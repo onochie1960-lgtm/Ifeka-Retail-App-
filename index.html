@@ -947,61 +947,7 @@
             else loadStaff();
         }
 
-        // --- PAYSTACK SUBSCRIPTION LOGIC ---
-        function payWithPaystack() {
-            let handler = PaystackPop.setup({
-                key: 'pk_test_40b75cbe14646f85beb08ee423a76ad3065bd89c', 
-                email: 'customer@ifekaretail.com', 
-                amount: 400000, // ₦4,000 in kobo
-                currency: 'NGN',
-                ref: 'IFK_' + Math.floor((Math.random() * 1000000000) + 1),
-                onClose: function(){
-                    alert('Transaction cancelled. You must subscribe to use the app.');
-                },
-                callback: function(response){
-                    unlockApp(response.reference);
-                }
-            });
-            handler.openIframe();
-        }
-
-        async function unlockApp(paystackRef) {
-            try {
-                const { error } = await supabaseClient.schema('retail').from('shops').update({ is_subscribed: true }).eq('id', currentShopId);
-                if (error) throw new Error(error.message);
-                alert("Payment successful! Welcome to Ifeka Retail Pro. Ref: " + paystackRef);
-                document.getElementById('paywall-modal').classList.add('hidden');
-                document.getElementById('paywall-modal').style.display = 'none';
-            } catch (err) { alert("Error unlocking app: " + err.message); }
-        }
-
-        // --- SUBSCRIPTION LOGIC ---
-        let settingsData = null;
-
-        async function checkSubscription() {
-            try {
-                const { data, error } = await supabaseClient.schema('retail').from('shops').select('*').eq('id', currentShopId).single();
-                if (error) return; 
-                
-                settingsData = data;
-                const now = new Date();
-                const expiryDate = new Date(data.trial_ends_at);
-                const daysLeft = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
-
-                if (now > expiryDate) {
-                    document.getElementById('paywall-modal').classList.remove('hidden');
-                    document.getElementById('paywall-modal').style.display = 'flex';
-                    document.getElementById('trial-banner').classList.add('hidden');
-                } else if (data.is_subscribed === true) {
-                    document.getElementById('paywall-modal').classList.add('hidden');
-                    document.getElementById('paywall-modal').style.display = 'none';
-                    document.getElementById('trial-banner').classList.add('hidden');
-                } else {
-                    document.getElementById('trial-banner').innerText = `⏳ Trial Active: ${daysLeft} days left`;
-                    document.getElementById('trial-banner').classList.remove('hidden');
-                    document.getElementById('paywall-modal').classList.add('hidden');
-                    document.getElementById('paywall-modal').style.display = 'none';
-                }
+        
             } catch (err) {
                 console.log("Sub check error:", err);
             }
