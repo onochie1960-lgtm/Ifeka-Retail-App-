@@ -829,6 +829,9 @@
                 .eq('shop_name', shopName)
                 .eq('owner_pin', pin)
                 .single();
+            if (error && error.code !== 'PGRST116') {
+    alert("Connection Error: " + error.message);
+}
 
             if (shopData) {
                 currentShopId = shopData.id;
