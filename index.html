@@ -943,6 +943,37 @@ async function unlockApp(paystackRef) {
         alert("Error unlocking app: " + err.message); 
     }
 }
+        // --- SUBSCRIPTION LOGIC ---
+let settingsData = null;
+
+async function checkSubscription() {
+    try {
+        const { data, error } = await supabaseClient.schema('retail').from('shops').select('*').eq('id', currentShopId).single();
+        if (error) return; 
+        
+        settingsData = data;
+        const now = new Date();
+        const expiryDate = new Date(data.trial_ends_at);
+        const daysLeft = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+
+        if (now > expiryDate) {
+            document.getElementById('paywall-modal').classList.remove('hidden');
+            document.getElementById('paywall-modal').style.display = 'flex';
+            document.getElementById('trial-banner').classList.add('hidden');
+        } else if (data.is_subscribed === true) {
+            document.getElementById('paywall-modal').classList.add('hidden');
+            document.getElementById('paywall-modal').style.display = 'none';
+            document.getElementById('trial-banner').classList.add('hidden');
+        } else {
+            document.getElementById('trial-banner').innerText = `⏳ Trial Active: ${daysLeft} days left`;
+            document.getElementById('trial-banner').classList.remove('hidden');
+            document.getElementById('paywall-modal').classList.add('hidden');
+            document.getElementById('paywall-modal').style.display = 'none';
+        }
+    } catch (err) {
+        console.log("Sub check error:", err);
+    }
+}
     </script>
 </body>
 </html>
