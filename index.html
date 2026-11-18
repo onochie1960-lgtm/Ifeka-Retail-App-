@@ -264,8 +264,8 @@
     </div>
 
         <script>
-        // 1. Setup Supabase
-        const SUPABASE_URL = 'https://ywpavqsencpilxisltsm.supabase.co';
+                // 1. Setup Supabase
+        const SUPABASE_URL = 'https://ywpavqscnepilxislstm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3cGF2cXNlbmNwaWx4aXNsdHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxMzU1OTAsImV4cCI6MjEwMjcxMTU5MH0.7NblgPa1zhyVzmZzwLuf_qAMJDhFEdRcvDEaIDJk37E';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -627,7 +627,7 @@
             const { error } = await supabaseClient.schema('retail').from('customers').update({ balance: currentBalance - paymentAmount }).eq('id', id);
             if (error) alert("Error: " + error.message);
             else loadCustomers();
-       }
+        }
 
         async function loadHistory() {
             const { data: sales } = await supabaseClient.schema('retail').from('sales').select('*').eq('shop_id', currentShopId).order('created_at', { ascending: false }).limit(20);
@@ -827,7 +827,7 @@
             } catch (err) { alert("Error unlocking app: " + err.message); }
         }
         
-                async function loginWithPin() {
+        async function loginWithPin() {
             const shopName = document.getElementById('login-shop-name').value;
             const pin = document.getElementById('login-pin').value;
             const errorMsg = document.getElementById('login-error');
@@ -939,7 +939,9 @@
     </script>
 </body>
 </html>
-     
+                    
+                
+                    
                 
             
                 
