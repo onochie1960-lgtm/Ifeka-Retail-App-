@@ -871,13 +871,13 @@
         alert("Database Error: " + error.message);
     }
 
-    if (shopData) {
-        currentShopId = shopData.id;
-        document.getElementById('login-screen').style.display = 'none';
+       if (shopData) {
+       currentShopId = shopData.id;
+       document.getElementById('login-screen').style.display = 'none';
         checkSubscription();
+        showPage('dashboard', document.querySelector('.nav-item')); // <--- ADD THIS LINE
         loadDashboard();
         return;
-    }
 
     // If we get here, login failed
     errorMsg.innerText = "❌ Incorrect Shop Name or PIN.";
