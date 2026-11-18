@@ -838,65 +838,44 @@
                 return;
             }
 
-            // Debug Alert
-            alert("Sending to DB:\nShop: '" + shopName + "'\nPIN: '" + pin + "'");
+            /async function loginWithPin() {
+    const shopName = document.getElementById('login-shop-name').value.trim();
+    const pin = document.getElementById('login-pin').value.trim();
+    const errorMsg = document.getElementById('login-error');
 
-            const { data: shopData, error } = await supabaseClient
-                .schema('retail')
-                .from('shops')
-                .select('*')
-                .eq('shop_name', shopName)
-                .eq('owner_pin', pin)
-                .single();
+    if (!shopName || !pin) {
+        errorMsg.innerText = "Please enter both Shop Name and PIN.";
+        return;
+    }
 
-            if (error && error.code !== 'PGRST116') {
-                alert("Database Error: " + error.message);
-            }
+    // DEBUG ALERT 1
+    alert("Sending to DB:\nShop: '" + shopName + "'\nPIN: '" + pin + "'");
 
-            if (shopData) {
-                currentShopId = shopData.id;
-                document.getElementById('login-screen').style.display = 'none';
-                checkSubscription();
-                loadDashboard();
-                return;
-            }
+    const { data: shopData, error } = await supabaseClient
+        .schema('retail')
+        .from('shops')
+        .select('*')
+        .eq('shop_name', shopName)
+        .eq('owner_pin', pin)
+        .single();
 
-            // Check if Cashier
-            const { data: shopByName } = await supabaseClient
-                .schema('retail')
-                .from('shops')
-                .select('id')
-                .eq('shop_name', shopName)
-                .single();
+    // DEBUG ALERT 2
+    if (error && error.code !== 'PGRST116') {
+        alert("Database Error: " + error.message);
+    }
 
-            if (shopByName) {
-                const { data: staffData } = await supabaseClient
-                    .schema('retail')
-                    .from('staff')
-                    .select('*')
-                    .eq('shop_id', shopByName.id)
-                    .eq('pin', pin)
-                    .single();
+    if (shopData) {
+        currentShopId = shopData.id;
+        document.getElementById('login-screen').style.display = 'none';
+        checkSubscription();
+        loadDashboard();
+        return;
+    }
 
-                if (staffData) {
-                    currentShopId = shopByName.id;
-                    document.getElementById('login-screen').style.display = 'none';
-                    
-                    const navItems = document.querySelectorAll('.nav-item');
-                    navItems.forEach((item, index) => {
-                        if (index !== 2) item.style.display = 'none';
-                    });
-
-                    const salesButton = document.querySelectorAll('.nav-item')[2];
-                    showPage('sales', salesButton);
-                    return;
-                }
-            }
-
-            errorMsg.innerText = "❌ Incorrect Shop Name or PIN.";
-            document.getElementById('login-pin').value = '';
-        }
-
+    // If we get here, login failed
+    errorMsg.innerText = "❌ Incorrect Shop Name or PIN.";
+    document.getElementById('login-pin').value = '';
+}
         // --- STAFF LOGIC ---
         async function loadStaff() {
             const { data, error } = await supabaseClient.schema('retail').from('staff').select('*').eq('shop_id', currentShopId).order('created_at', { ascending: false });
