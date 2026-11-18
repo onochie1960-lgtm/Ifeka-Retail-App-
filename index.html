@@ -778,31 +778,44 @@
         let settingsData = null;
 
         async function checkSubscription() {
-            try {
-                const { data, error } = await supabaseClient.schema('retail').from('shops').select('*').eq('shop_name', document.getElementById('login-shop-name').value).single();
-                if (error) return; 
-                
-                settingsData = data;
-                const now = new Date();
-                const expiryDate = new Date(data.trial_ends_at);
-                const daysLeft = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
-
-                if (now > expiryDate) {
-                    document.getElementById('paywall-modal').classList.remove('hidden');
-                    document.getElementById('paywall-modal').style.display = 'flex';
-                    document.getElementById('trial-banner').classList.add('hidden');
-                } else if (data.is_subscribed === true) {
-                    document.getElementById('paywall-modal').classList.add('hidden');
-                    document.getElementById('paywall-modal').style.display = 'none';
-                    document.getElementById('trial-banner').classList.add('hidden');
-                } else {
-                    document.getElementById('trial-banner').innerText = `⏳ Trial Active: ${daysLeft} days left`;
-                    document.getElementById('trial-banner').classList.remove('hidden');
-                    document.getElementById('paywall-modal').classList.add('hidden');
-                    document.getElementById('paywall-modal').style.display = 'none';
-                }
-            } catch (err) {}
+    try {
+        // ALERT 1: Check if we have the Shop ID
+        alert("Checking subscription for Shop ID: " + currentShopId);
+        
+        const { data, error } = await supabaseClient.schema('retail').from('shops').select('*').eq('id', currentShopId).single();
+        
+        if (error) {
+            // ALERT 2: Check for Database error
+            alert("Database Error: " + error.message);
+            return; 
         }
+        
+        settingsData = data;
+        const now = new Date();
+        const expiryDate = new Date(data.trial_ends_at);
+        const daysLeft = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+
+        // ALERT 3: Check the dates and calculation
+        alert("Trial Ends: " + data.trial_ends_at + "\nDays Left: " + daysLeft + "\nIs Subscribed: " + data.is_subscribed);
+
+        if (now > expiryDate) {
+            document.getElementById('paywall-modal').classList.remove('hidden');
+            document.getElementById('paywall-modal').style.display = 'flex';
+            document.getElementById('trial-banner').classList.add('hidden');
+        } else if (data.is_subscribed === true) {
+            document.getElementById('paywall-modal').classList.add('hidden');
+            document.getElementById('paywall-modal').style.display = 'none';
+            document.getElementById('trial-banner').classList.add('hidden');
+        } else {
+            document.getElementById('trial-banner').innerText = `⏳ Trial Active: ${daysLeft} days left`;
+            document.getElementById('trial-banner').classList.remove('hidden');
+            document.getElementById('paywall-modal').classList.add('hidden');
+            document.getElementById('paywall-modal').style.display = 'none';
+        }
+    } catch (err) {
+        alert("Catch Error: " + err.message);
+    }
+}
 
         function payWithPaystack() {
             let handler = PaystackPop.setup({
