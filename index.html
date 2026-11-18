@@ -644,14 +644,22 @@
             const salesDiv = document.getElementById('history-sales-list');
             salesDiv.innerHTML = !sales || sales.length === 0 ? '<p>No sales recorded yet.</p>' : '';
             if (sales) sales.forEach(sale => {
-                salesDiv.innerHTML += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:8px 0;"><div><p style="font-weight:bold; margin:0;">${sale.product_name} (x${sale.quantity_sold})</p><p style="font-size:10px; color:#666; margin:0;">${new Date(sale.created_at).toLocaleDateString()}</p></div><p style="font-weight:bold; color:green; margin:0;">₦${Number(sale.total_price).toLocaleString()}</p></div>`;
+              salesDiv.innerHTML += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:8px 0;"><div><p style="font-weight:bold; margin:0;">${sale.product_name} (x${sale.quantity_sold})</p><p style="font-size:10px; color:#666; margin:0;">${new Date(sale.created_at).toLocaleDateString()}</p></div><p style="font-weight:bold; color:green; margin:0;">₦${Number(sale.total_price).toLocaleString()}</p></div>`;
             });
 
             const { data: expenses } = await supabaseClient.schema('retail').from('expenses').select('*').eq('shop_id', currentShopId).order('created_at', { ascending: false }).limit(20);
             const expDiv = document.getElementById('history-expenses-list');
             expDiv.innerHTML = !expenses || expenses.length === 0 ? '<p>No expenses recorded yet.</p>' : '';
             if (expenses) expenses.forEach(exp => {
-                expDiv.innerHTML += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:8px 0;"><div><p style="font-weight:bold; margin:0;">${exp.description}</p><p style="font-size:10px; color:#666; margin:0;">${exp.category} • ${new Date(exp.created_at).toLocaleDateString()}</p></div><p style="font-weight:bold; color:red; margin:0;">-₦${Number(exp.amount).toLocaleString()}</p></div>`;
+              salesDiv.innerHTML += `
+    <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:8px 0;">
+        <div>
+            <p style="font-weight:bold; margin:0;">${sale.product_name} (x${sale.quantity_sold})</p>
+            <p style="font-size:10px; color:#666; margin:0;">${sale.payment_method || 'Cash'} • ${new Date(sale.created_at).toLocaleDateString()}</p>
+        </div>
+        <p style="font-weight:bold; color:green; margin:0;">₦${Number(sale.total_price).toLocaleString()}</p>
+    </div>
+`;
             });
         }
 
