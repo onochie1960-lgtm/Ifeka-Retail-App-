@@ -850,33 +850,34 @@
         return;
     }
 
-    // DEBUG ALERT 1
-    alert("Sending to DB:\nShop: '" + shopName + "'\nPIN: '" + pin + "'");
+    // Debug Alert (Let's see if the button works)
+    alert("Button clicked! Searching for: " + shopName);
 
-    const { data: shopData, error } = await supabaseClient
-        .schema('retail')
-        .from('shops')
-        .select('*')
-        .eq('shop_name', shopName)
-        .eq('owner_pin', pin)
-        .single();
+    try {
+        const { data: shopData, error } = await supabaseClient
+            .schema('retail')
+            .from('shops')
+            .select('*')
+            .eq('shop_name', shopName)
+            .eq('owner_pin', pin)
+            .single();
 
-    // DEBUG ALERT 2
-    if (error && error.code !== 'PGRST116') {
-        alert("Database Error: " + error.message);
+        if (shopData) {
+            currentShopId = shopData.id;
+            document.getElementById('login-screen').style.display = 'none';
+            checkSubscription();
+            showPage('dashboard', document.querySelector('.nav-item'));
+            loadDashboard();
+            return;
+        }
+
+        // If we get here, login failed
+        errorMsg.innerText = "❌ Incorrect Shop Name or PIN.";
+        document.getElementById('login-pin').value = '';
+
+    } catch (err) {
+        alert("Login Error: " + err.message);
     }
-
-       if (shopData) {
-       currentShopId = shopData.id;
-       document.getElementById('login-screen').style.display = 'none';
-        checkSubscription();
-        showPage('dashboard', document.querySelector('.nav-item')); // <--- ADD THIS LINE
-        loadDashboard();
-        return;
-
-    // If we get here, login failed
-    errorMsg.innerText = "❌ Incorrect Shop Name or PIN.";
-    document.getElementById('login-pin').value = '';
 }
         async function loadStaff() {
             const { data, error } = await supabaseClient.schema('retail').from('staff').select('*').eq('shop_id', currentShopId).order('created_at', { ascending: false });
