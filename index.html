@@ -43,23 +43,23 @@
         <button onclick="loginWithPin()" style="background: #10b981; color: white; padding: 15px 40px; border: none; border-radius: 5px; font-size: 18px; font-weight: bold; cursor: pointer;">Login</button>
         <p id="login-error" style="color: #ef4444; margin-top: 15px; font-weight: bold;"></p>
     </div>
-<!-- Paywall Modal -->
-<div id="paywall-modal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #f3f4f6; z-index: 999999; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;">
-    <h1 style="font-size: 28px; font-weight: bold; color: #064e3b; margin-bottom: 10px;">Ifeka Retail</h1>
-    <p style="color: #666; margin-bottom: 30px;">Manage your inventory, sales, and debts effortlessly.</p>
-    
-    <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px; width: 100%;">
-        <h2 style="font-size: 20px; font-weight: bold; margin-bottom: 15px;">Unlock Full Access</h2>
-        <p style="margin-bottom: 20px; font-size: 14px; color: #666;">Your 7-day free trial has ended. Subscribe now to continue managing your shop.</p>
+
+    <!-- Paywall Modal -->
+    <div id="paywall-modal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #f3f4f6; z-index: 999999; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;">
+        <h1 style="font-size: 28px; font-weight: bold; color: #064e3b; margin-bottom: 10px;">Ifeka Retail</h1>
+        <p style="color: #666; margin-bottom: 30px;">Manage your inventory, sales, and debts effortlessly.</p>
         
-        <h3 style="font-size: 32px; font-weight: bold; color: #10b981; margin-bottom: 20px;">₦4,000<span style="font-size: 14px; color: #666;">/month</span></h3>
-        
-        <button onclick="payWithPaystack()" style="width: 100%; background: #10b981; color: white; padding: 15px; border: none; border-radius: 5px; font-weight: bold; font-size: 16px; cursor: pointer;">Subscribe with Paystack</button>
+        <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px; width: 100%;">
+            <h2 style="font-size: 20px; font-weight: bold; margin-bottom: 15px;">Unlock Full Access</h2>
+            <p style="margin-bottom: 20px; font-size: 14px; color: #666;">Your 7-day free trial has ended. Subscribe now to continue managing your shop.</p>
+            
+            <h3 style="font-size: 32px; font-weight: bold; color: #10b981; margin-bottom: 20px;">₦4,000<span style="font-size: 14px; color: #666;">/month</span></h3>
+            
+            <button onclick="payWithPaystack()" style="width: 100%; background: #10b981; color: white; padding: 15px; border: none; border-radius: 5px; font-weight: bold; font-size: 16px; cursor: pointer;">Subscribe with Paystack</button>
+        </div>
     </div>
-</div>
+
     <div class="main-content">
-        
-        
         <!-- Dashboard Page -->
         <div id="dashboard-page">
             <div id="trial-banner" class="hidden" style="background: #fef08a; color: #854d0e; padding: 10px; border-radius: 5px; font-weight: bold; margin-bottom: 15px; text-align: center;">
@@ -136,21 +136,21 @@
                     <span id="cart-total" style="color: #059669;">₦0</span>
                 </div>
                 <div style="margin-bottom: 15px;">
-    <label class="block mb-1 font-bold">Payment Method:</label>
-    <select id="payment-method" onchange="toggleTransferStatus()" class="w-full p-3 border rounded">
-        <option value="Cash">💵 Cash</option>
-        <option value="Transfer">🏦 Bank Transfer</option>
-        <option value="POS">💳 POS</option>
-    </select>
-</div>
+                    <label class="block mb-1 font-bold">Payment Method:</label>
+                    <select id="payment-method" onchange="toggleTransferStatus()" class="w-full p-3 border rounded">
+                        <option value="Cash">💵 Cash</option>
+                        <option value="Transfer">🏦 Bank Transfer</option>
+                        <option value="POS">💳 POS</option>
+                    </select>
+                </div>
                 <!-- Transfer Status (Hidden by default) -->
-<div id="transfer-status-container" style="display: none; margin-bottom: 15px; background: #fef2f2; padding: 10px; border-radius: 5px; border: 1px solid #ef4444;">
-    <label class="block mb-1 font-bold text-red-600">⚠️ Transfer Status:</label>
-    <select id="transfer-status" class="w-full p-3 border rounded">
-        <option value="Pending">🔴 Pending (Not Confirmed)</option>
-        <option value="Confirmed">🟢 Confirmed (Money Received)</option>
-    </select>
-</div>
+                <div id="transfer-status-container" style="display: none; margin-bottom: 15px; background: #fef2f2; padding: 10px; border-radius: 5px; border: 1px solid #ef4444;">
+                    <label class="block mb-1 font-bold text-red-600">⚠️ Transfer Status:</label>
+                    <select id="transfer-status" class="w-full p-3 border rounded">
+                        <option value="Pending">🔴 Pending (Not Confirmed)</option>
+                        <option value="Confirmed">🟢 Confirmed (Money Received)</option>
+                    </select>
+                </div>
                 <button class="btn" style="background: #059669; padding: 15px;" onclick="checkout()">✅ Checkout & Print Receipt</button>
                 <button onclick="clearCart()" style="width: 100%; margin-top: 10px; background: #ef4444; color: white; padding: 10px; border: none; border-radius: 5px; font-weight: bold;">Clear Cart</button>
             </div>
@@ -279,8 +279,8 @@
         <button onclick="stopScanner()" style="margin-top: 20px; background: #ef4444; color: white; padding: 12px 24px; border: none; border-radius: 5px; font-weight: bold; font-size: 16px;">Close Scanner</button>
     </div>
 
-        <script>
-                // 1. Setup Supabase
+    <script>
+        // 1. Setup Supabase
         const SUPABASE_URL = 'https://ywpavqsencpilxisltsm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3cGF2cXNlbmNwaWx4aXNsdHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxMzU1OTAsImV4cCI6MjEwMjcxMTU5MH0.7NblgPa1zhyVzmZzwLuf_qAMJDhFEdRcvDEaIDJk37E';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -357,7 +357,6 @@
                 alert("PRODUCTS ERROR: " + err.message);
             }
         }
-
         function renderProductList(products) {
             const listDiv = document.getElementById('product-list');
             listDiv.innerHTML = products.length === 0 ? '<p>No products found.</p>' : '';
@@ -485,66 +484,68 @@
 
         function removeFromCart(index) { currentCart.splice(index, 1); renderCart(); }
         function clearCart() { currentCart = []; renderCart(); }
-function toggleTransferStatus() {
-    const method = document.getElementById('payment-method').value;
-    const container = document.getElementById('transfer-status-container');
-    if (method === 'Transfer') {
-        container.style.display = 'block';
-    } else {
-        container.style.display = 'none';
-    }
-}
-        async function checkout() {
-    if (currentCart.length === 0) return alert("Cart is empty!");
-    const txId = crypto.randomUUID();
-    let totalReceiptAmount = 0;
-    let receiptText = `*IFEKA RETAIL RECEIPT*%0A-------------------%0A`;
-    const paymentMethod = document.getElementById('payment-method').value;
-const paymentStatus = paymentMethod === 'Transfer' ? document.getElementById('transfer-status').value : 'Confirmed';
-    try {
-        for (const item of currentCart) {
-            const totalPrice = item.price * item.qty;
-            const profit = (item.price - item.cost) * item.qty;
-            totalReceiptAmount += totalPrice;
-
-            const { error: saleError } = await supabaseClient.schema('retail').from('sales').insert([{ 
-                shop_id: currentShopId, 
-                transaction_id: txId, 
-                product_id: item.id, 
-                product_name: item.name, 
-                quantity_sold: item.qty, 
-                total_price: totalPrice, 
-                profit: profit,
-                payment_method: paymentMethod
-                payment_status: paymentStatus // <--- NEW
-            }]);
-            if (saleError) throw new Error(saleError.message);
-
-            const { data: pData } = await supabaseClient.schema('retail').from('products').select('quantity').eq('id', item.id).single();
-            const newStock = pData.quantity - item.qty;
-            
-            const { error: stockError } = await supabaseClient.schema('retail').from('products').update({ quantity: newStock }).eq('id', item.id);
-            if (stockError) throw new Error(stockError.message);
-
-            receiptText += `${item.name} (x${item.qty}): ₦${totalPrice.toLocaleString()}%0A`;
-        }
-
-        receiptText += `-------------------%0A*TOTAL: ₦${totalReceiptAmount.toLocaleString()}*%0APaid Via: ${paymentMethod} (${paymentStatus})%0ADate: ${new Date().toLocaleDateString()}%0AThank you!`;
-
-        document.getElementById('receipt-item').innerText = "Multiple Items";
-        document.getElementById('receipt-qty').innerText = currentCart.reduce((sum, i) => sum + i.qty, 0);
-        document.getElementById('receipt-total').innerText = `₦${totalReceiptAmount.toLocaleString()}`;
-        document.getElementById('receipt-date').innerText = new Date().toLocaleString();
         
-        window.lastSale = { whatsappText: receiptText, total: totalReceiptAmount, isCart: true };
+        function toggleTransferStatus() {
+            const method = document.getElementById('payment-method').value;
+            const container = document.getElementById('transfer-status-container');
+            if (method === 'Transfer') {
+                container.style.display = 'block';
+            } else {
+                container.style.display = 'none';
+            }
+        }
+        async function checkout() {
+            if (currentCart.length === 0) return alert("Cart is empty!");
+            const txId = crypto.randomUUID();
+            let totalReceiptAmount = 0;
+            let receiptText = `*IFEKA RETAIL RECEIPT*%0A-------------------%0A`;
+            const paymentMethod = document.getElementById('payment-method').value;
+            const paymentStatus = paymentMethod === 'Transfer' ? document.getElementById('transfer-status').value : 'Confirmed';
 
-        document.getElementById('receipt-modal').classList.remove('hidden');
-        document.getElementById('receipt-modal').style.display = 'flex';
-        clearCart();
-    } catch (err) {
-        alert("CHECKOUT ERROR: " + err.message);
-    }
-}
+            try {
+                for (const item of currentCart) {
+                    const totalPrice = item.price * item.qty;
+                    const profit = (item.price - item.cost) * item.qty;
+                    totalReceiptAmount += totalPrice;
+
+                    const { error: saleError } = await supabaseClient.schema('retail').from('sales').insert([{ 
+                        shop_id: currentShopId, 
+                        transaction_id: txId, 
+                        product_id: item.id, 
+                        product_name: item.name, 
+                        quantity_sold: item.qty, 
+                        total_price: totalPrice, 
+                        profit: profit,
+                        payment_method: paymentMethod,
+                        payment_status: paymentStatus 
+                    }]);
+                    if (saleError) throw new Error(saleError.message);
+
+                    const { data: pData } = await supabaseClient.schema('retail').from('products').select('quantity').eq('id', item.id).single();
+                    const newStock = pData.quantity - item.qty;
+                    
+                    const { error: stockError } = await supabaseClient.schema('retail').from('products').update({ quantity: newStock }).eq('id', item.id);
+                    if (stockError) throw new Error(stockError.message);
+
+                    receiptText += `${item.name} (x${item.qty}): ₦${totalPrice.toLocaleString()}%0A`;
+                }
+
+                receiptText += `-------------------%0A*TOTAL: ₦${totalReceiptAmount.toLocaleString()}*%0APaid Via: ${paymentMethod} (${paymentStatus})%0ADate: ${new Date().toLocaleDateString()}%0AThank you!`;
+
+                document.getElementById('receipt-item').innerText = "Multiple Items";
+                document.getElementById('receipt-qty').innerText = currentCart.reduce((sum, i) => sum + i.qty, 0);
+                document.getElementById('receipt-total').innerText = `₦${totalReceiptAmount.toLocaleString()}`;
+                document.getElementById('receipt-date').innerText = new Date().toLocaleString();
+                
+                window.lastSale = { whatsappText: receiptText, total: totalReceiptAmount, isCart: true };
+
+                document.getElementById('receipt-modal').classList.remove('hidden');
+                document.getElementById('receipt-modal').style.display = 'flex';
+                clearCart();
+            } catch (err) {
+                alert("CHECKOUT ERROR: " + err.message);
+            }
+        }
 
         function closeReceipt() {
             document.getElementById('receipt-modal').classList.add('hidden');
@@ -615,7 +616,6 @@ const paymentStatus = paymentMethod === 'Transfer' ? document.getElementById('tr
                 `;
             });
         }
-
         async function addCustomer() {
             const name = document.getElementById('cust-name').value;
             const phone = document.getElementById('cust-phone').value;
@@ -657,50 +657,50 @@ const paymentStatus = paymentMethod === 'Transfer' ? document.getElementById('tr
         }
 
         async function loadHistory() {
-    const { data: sales } = await supabaseClient.schema('retail').from('sales').select('*').eq('shop_id', currentShopId).order('created_at', { ascending: false }).limit(20);
-    const salesDiv = document.getElementById('history-sales-list');
-    salesDiv.innerHTML = !sales || sales.length === 0 ? '<p>No sales recorded yet.</p>' : '';
-    
-    if (sales) {
-        sales.forEach(sale => {
-    const method = sale.payment_method || 'Cash';
-    const status = sale.payment_status || 'Confirmed';
-    const date = new Date(sale.created_at).toLocaleDateString();
-    
-    // If it's pending, make it red.
-    const statusColor = status === 'Pending' ? 'color:red; font-weight:bold;' : 'color:green;';
-    const statusText = status === 'Pending' ? ' (Pending)' : '';
+            const { data: sales } = await supabaseClient.schema('retail').from('sales').select('*').eq('shop_id', currentShopId).order('created_at', { ascending: false }).limit(20);
+            const salesDiv = document.getElementById('history-sales-list');
+            salesDiv.innerHTML = !sales || sales.length === 0 ? '<p>No sales recorded yet.</p>' : '';
+            
+            if (sales) {
+                sales.forEach(sale => {
+                    const method = sale.payment_method || 'Cash';
+                    const status = sale.payment_status || 'Confirmed';
+                    const date = new Date(sale.created_at).toLocaleDateString();
+                    
+                    const statusColor = status === 'Pending' ? 'color:red; font-weight:bold;' : 'color:green;';
+                    const statusText = status === 'Pending' ? ' (Pending)' : '';
 
-    salesDiv.innerHTML += `
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:8px 0;">
-            <div>
-                <p style="font-weight:bold; margin:0;">${sale.product_name} (x${sale.quantity_sold})</p>
-                <p style="font-size:10px; margin:0; ${statusColor}">${method}${statusText} • ${date}</p>
-            </div>
-            <p style="font-weight:bold; color:green; margin:0;">₦${Number(sale.total_price).toLocaleString()}</p>
-        </div>
-    `;
-});
+                    salesDiv.innerHTML += `
+                        <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:8px 0;">
+                            <div>
+                                <p style="font-weight:bold; margin:0;">${sale.product_name} (x${sale.quantity_sold})</p>
+                                <p style="font-size:10px; margin:0; ${statusColor}">${method}${statusText} • ${date}</p>
+                            </div>
+                            <p style="font-weight:bold; color:green; margin:0;">₦${Number(sale.total_price).toLocaleString()}</p>
+                        </div>
+                    `;
+                });
+            }
 
-    const { data: expenses } = await supabaseClient.schema('retail').from('expenses').select('*').eq('shop_id', currentShopId).order('created_at', { ascending: false }).limit(20);
-    const expDiv = document.getElementById('history-expenses-list');
-    expDiv.innerHTML = !expenses || expenses.length === 0 ? '<p>No expenses recorded yet.</p>' : '';
-    
-    if (expenses) {
-        expenses.forEach(exp => {
-            const date = new Date(exp.created_at).toLocaleDateString();
-            expDiv.innerHTML += `
-                <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:8px 0;">
-                    <div>
-                        <p style="font-weight:bold; margin:0;">${exp.description}</p>
-                        <p style="font-size:10px; color:#666; margin:0;">${exp.category} • ${date}</p>
-                    </div>
-                    <p style="font-weight:bold; color:red; margin:0;">-₦${Number(exp.amount).toLocaleString()}</p>
-                </div>
-            `;
-        });
-    }
-}
+            const { data: expenses } = await supabaseClient.schema('retail').from('expenses').select('*').eq('shop_id', currentShopId).order('created_at', { ascending: false }).limit(20);
+            const expDiv = document.getElementById('history-expenses-list');
+            expDiv.innerHTML = !expenses || expenses.length === 0 ? '<p>No expenses recorded yet.</p>' : '';
+            
+            if (expenses) {
+                expenses.forEach(exp => {
+                    const date = new Date(exp.created_at).toLocaleDateString();
+                    expDiv.innerHTML += `
+                        <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:8px 0;">
+                            <div>
+                                <p style="font-weight:bold; margin:0;">${exp.description}</p>
+                                <p style="font-size:10px; color:#666; margin:0;">${exp.category} • ${date}</p>
+                            </div>
+                            <p style="font-weight:bold; color:red; margin:0;">-₦${Number(exp.amount).toLocaleString()}</p>
+                        </div>
+                    `;
+                });
+            }
+        }
 
         async function loadSuppliers() {
             try {
@@ -810,9 +810,8 @@ const paymentStatus = paymentMethod === 'Transfer' ? document.getElementById('tr
                     document.getElementById('scanner-modal').classList.add('hidden');
                     document.getElementById('scanner-modal').style.display = 'none';
                 }).catch(err => console.log(err));
-            }
         }
-
+            
         async function handleSaleScan(barcode) {
             if (!barcode) return;
             try {
@@ -835,44 +834,33 @@ const paymentStatus = paymentMethod === 'Transfer' ? document.getElementById('tr
         let settingsData = null;
 
         async function checkSubscription() {
-    try {
-        // ALERT 1: Check if we have the Shop ID
-        alert("Checking subscription for Shop ID: " + currentShopId);
-        
-        const { data, error } = await supabaseClient.schema('retail').from('shops').select('*').eq('id', currentShopId).single();
-        
-        if (error) {
-            // ALERT 2: Check for Database error
-            alert("Database Error: " + error.message);
-            return; 
-        }
-        
-        settingsData = data;
-        const now = new Date();
-        const expiryDate = new Date(data.trial_ends_at);
-        const daysLeft = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+            try {
+                const { data, error } = await supabaseClient.schema('retail').from('shops').select('*').eq('id', currentShopId).single();
+                if (error) return; 
+                
+                settingsData = data;
+                const now = new Date();
+                const expiryDate = new Date(data.trial_ends_at);
+                const daysLeft = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
 
-        // ALERT 3: Check the dates and calculation
-        alert("Trial Ends: " + data.trial_ends_at + "\nDays Left: " + daysLeft + "\nIs Subscribed: " + data.is_subscribed);
-
-        if (now > expiryDate) {
-            document.getElementById('paywall-modal').classList.remove('hidden');
-            document.getElementById('paywall-modal').style.display = 'flex';
-            document.getElementById('trial-banner').classList.add('hidden');
-        } else if (data.is_subscribed === true) {
-            document.getElementById('paywall-modal').classList.add('hidden');
-            document.getElementById('paywall-modal').style.display = 'none';
-            document.getElementById('trial-banner').classList.add('hidden');
-        } else {
-            document.getElementById('trial-banner').innerText = `⏳ Trial Active: ${daysLeft} days left`;
-            document.getElementById('trial-banner').classList.remove('hidden');
-            document.getElementById('paywall-modal').classList.add('hidden');
-            document.getElementById('paywall-modal').style.display = 'none';
+                if (now > expiryDate) {
+                    document.getElementById('paywall-modal').classList.remove('hidden');
+                    document.getElementById('paywall-modal').style.display = 'flex';
+                    document.getElementById('trial-banner').classList.add('hidden');
+                } else if (data.is_subscribed === true) {
+                    document.getElementById('paywall-modal').classList.add('hidden');
+                    document.getElementById('paywall-modal').style.display = 'none';
+                    document.getElementById('trial-banner').classList.add('hidden');
+                } else {
+                    document.getElementById('trial-banner').innerText = `⏳ Trial Active: ${daysLeft} days left`;
+                    document.getElementById('trial-banner').classList.remove('hidden');
+                    document.getElementById('paywall-modal').classList.add('hidden');
+                    document.getElementById('paywall-modal').style.display = 'none';
+                }
+            } catch (err) {
+                console.log("Sub check error:", err);
+            }
         }
-    } catch (err) {
-        alert("Catch Error: " + err.message);
-    }
-}
 
         function payWithPaystack() {
             let handler = PaystackPop.setup({
@@ -897,46 +885,43 @@ const paymentStatus = paymentMethod === 'Transfer' ? document.getElementById('tr
             } catch (err) { alert("Error unlocking app: " + err.message); }
         }
         
-        async function loginWithPin() { alert("Login button clicked!");
-    const shopName = document.getElementById('login-shop-name').value.trim();
-    const pin = document.getElementById('login-pin').value.trim();
-    const errorMsg = document.getElementById('login-error');
+        async function loginWithPin() { 
+            const shopName = document.getElementById('login-shop-name').value.trim();
+            const pin = document.getElementById('login-pin').value.trim();
+            const errorMsg = document.getElementById('login-error');
 
-    if (!shopName || !pin) {
-        errorMsg.innerText = "Please enter both Shop Name and PIN.";
-        return;
-    }
+            if (!shopName || !pin) {
+                errorMsg.innerText = "Please enter both Shop Name and PIN.";
+                return;
+            }
 
-    // Debug Alert (Let's see if the button works)
-    alert("Button clicked! Searching for: " + shopName);
+            try {
+                const { data: shopData, error } = await supabaseClient
+                    .schema('retail')
+                    .from('shops')
+                    .select('*')
+                    .eq('shop_name', shopName)
+                    .eq('owner_pin', pin)
+                    .single();
 
-    try {
-        const { data: shopData, error } = await supabaseClient
-            .schema('retail')
-            .from('shops')
-            .select('*')
-            .eq('shop_name', shopName)
-            .eq('owner_pin', pin)
-            .single();
+                if (shopData) {
+                    currentShopId = shopData.id;
+                    document.getElementById('login-screen').style.display = 'none';
+                    checkSubscription();
+                    showPage('dashboard', document.querySelector('.nav-item'));
+                    loadDashboard();
+                    return;
+                }
 
-        if (shopData) {
-            currentShopId = shopData.id;
-            document.getElementById('login-screen').style.display = 'none';
-            checkSubscription();
-            showPage('dashboard', document.querySelector('.nav-item'));
-            loadDashboard();
-            return;
+                // If we get here, login failed
+                errorMsg.innerText = "❌ Incorrect Shop Name or PIN.";
+                document.getElementById('login-pin').value = '';
+
+            } catch (err) {
+                alert("Login Error: " + err.message);
+            }
         }
-
-        // If we get here, login failed
-        errorMsg.innerText = "❌ Incorrect Shop Name or PIN.";
-        document.getElementById('login-pin').value = '';
-
-    } catch (err) {
-        alert("Login Error: " + err.message);
-    }
-}
-        async function loadStaff() {
+            async function loadStaff() {
             const { data, error } = await supabaseClient.schema('retail').from('staff').select('*').eq('shop_id', currentShopId).order('created_at', { ascending: false });
             if (error) return alert("Error: " + error.message);
 
@@ -987,11 +972,4 @@ const paymentStatus = paymentMethod === 'Transfer' ? document.getElementById('tr
     </script>
 </body>
 </html>
-                    
-                
-                    
-                
-            
-                
-            
-                
+        
