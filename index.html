@@ -663,24 +663,29 @@
             
             if (sales) {
                 sales.forEach(sale => {
-                    const method = sale.payment_method || 'Cash';
-                    const status = sale.payment_status || 'Confirmed';
-                    const date = new Date(sale.created_at).toLocaleDateString();
-                    
-                    const statusColor = status === 'Pending' ? 'color:red; font-weight:bold;' : 'color:green;';
-                    const statusText = status === 'Pending' ? ' (Pending)' : '';
+    const method = sale.payment_method || 'Cash';
+    const status = sale.payment_status || 'Confirmed';
+    const date = new Date(sale.created_at).toLocaleDateString();
+    
+    const statusColor = status === 'Pending' ? 'color:red; font-weight:bold;' : 'color:green;';
+    const statusText = status === 'Pending' ? ' (Pending)' : '';
 
-                    salesDiv.innerHTML += `
-                        <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:8px 0;">
-                            <div>
-                                <p style="font-weight:bold; margin:0;">${sale.product_name} (x${sale.quantity_sold})</p>
-                                <p style="font-size:10px; margin:0; ${statusColor}">${method}${statusText} • ${date}</p>
-                            </div>
-                            <p style="font-weight:bold; color:green; margin:0;">₦${Number(sale.total_price).toLocaleString()}</p>
-                        </div>
-                    `;
-                });
-            }
+    // Add the Confirm button ONLY if the status is Pending
+    const confirmButton = status === 'Pending' 
+        ? `<button onclick="confirmTransfer('${sale.id}')" style="background:#10b981; color:white; padding:5px 10px; border-radius:5px; border:none; font-size:12px; font-weight:bold; margin-top:5px;">✅ Confirm Payment</button>` 
+        : '';
+
+    salesDiv.innerHTML += `
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:8px 0;">
+            <div>
+                <p style="font-weight:bold; margin:0;">${sale.product_name} (x${sale.quantity_sold})</p>
+                <p style="font-size:10px; margin:0; ${statusColor}">${method}${statusText} • ${date}</p>
+                ${confirmButton}
+            </div>
+            <p style="font-weight:bold; color:green; margin:0;">₦${Number(sale.total_price).toLocaleString()}</p>
+        </div>
+    `;
+});
 
             const { data: expenses } = await supabaseClient.schema('retail').from('expenses').select('*').eq('shop_id', currentShopId).order('created_at', { ascending: false }).limit(20);
             const expDiv = document.getElementById('history-expenses-list');
@@ -971,6 +976,25 @@
             if (error) alert("Error: " + error.message);
             else loadStaff();
         }
+            // 15. Confirm Pending Transfer
+async function confirmTransfer(saleId) {
+    if (!confirm("Have you checked your bank account and confirmed this money entered?")) return;
+
+    try {
+        // Update the status in the database
+        const { error } = await supabaseClient.schema('retail').from('sales').update({ payment_status: 'Confirmed' }).eq('id', saleId);
+        if (error) throw new Error(error.message);
+
+        // Refresh the History page to show the new green status
+        loadHistory();
+        
+        // Also refresh the Dashboard so the sales update
+        loadDashboard();
+
+    } catch (err) {
+        alert("Error confirming payment: " + err.message);
+    }
+}
     </script>
 </body>
 </html>
