@@ -811,6 +811,8 @@
                     document.getElementById('scanner-modal').style.display = 'none';
                 }).catch(err => console.log(err));
         }
+            } // <-- Closes the function (YOU WERE MISSING THIS ONE)
+            
             
         async function handleSaleScan(barcode) {
             if (!barcode) return;
