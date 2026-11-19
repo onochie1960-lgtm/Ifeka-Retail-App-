@@ -686,6 +686,7 @@
         </div>
     `;
 });
+            }             
 
             const { data: expenses } = await supabaseClient.schema('retail').from('expenses').select('*').eq('shop_id', currentShopId).order('created_at', { ascending: false }).limit(20);
             const expDiv = document.getElementById('history-expenses-list');
