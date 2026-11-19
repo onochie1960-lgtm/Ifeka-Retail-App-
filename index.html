@@ -672,8 +672,8 @@
 
     // Add the Confirm button ONLY if the status is Pending
     const confirmButton = status === 'Pending' 
-        ? `<button onclick="confirmTransfer('${sale.id}')" style="background:#10b981; color:white; padding:5px 10px; border-radius:5px; border:none; font-size:12px; font-weight:bold; margin-top:5px;">✅ Confirm Payment</button>` 
-        : '';
+    ? `<button onclick="confirmTransfer('${sale.id}')" style="background:#10b981; color:white; padding:5px 10px; border-radius:5px; border:none; font-size:12px; font-weight:bold; margin-top:5px;">✅ Confirm Payment</button>` 
+    : '';
 
     salesDiv.innerHTML += `
         <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:8px 0;">
