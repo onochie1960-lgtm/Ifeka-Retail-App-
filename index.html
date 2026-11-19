@@ -897,7 +897,7 @@ const paymentStatus = paymentMethod === 'Transfer' ? document.getElementById('tr
             } catch (err) { alert("Error unlocking app: " + err.message); }
         }
         
-        async function loginWithPin() {
+        async function loginWithPin() { alert("Login button clicked!");
     const shopName = document.getElementById('login-shop-name').value.trim();
     const pin = document.getElementById('login-pin').value.trim();
     const errorMsg = document.getElementById('login-error');
